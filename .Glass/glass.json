@@ -1,0 +1,44 @@
+{
+  "NetworkTables": {
+    "transitory": {
+      "limelight": {
+        "double[]##v_/limelight/botpose": {
+          "open": true
+        },
+        "open": true
+      },
+      "limelight-front": {
+        "open": true
+      },
+      "limelight-test": {
+        "double[]##v_/limelight-test/botpose": {
+          "open": true
+        },
+        "double[]##v_/limelight-test/botpose_orb": {
+          "open": true
+        },
+        "double[]##v_/limelight-test/tcornxy": {
+          "open": true
+        },
+        "open": true
+      }
+    },
+    "types": {
+      "/AdvantageKit/RealOutputs/Alerts": "Alerts",
+      "/AdvantageKit/RealOutputs/PathPlanner": "Alerts",
+      "/FMSInfo": "FMSInfo",
+      "/SmartDashboard/Alerts": "Alerts",
+      "/SmartDashboard/Auto Choices": "String Chooser",
+      "/SmartDashboard/PathPlanner": "Alerts"
+    }
+  },
+  "NetworkTables Info": {
+    "Connections": {
+      "open": true
+    },
+    "visible": true
+  },
+  "NetworkTables Settings": {
+    "mode": "Client (NT4)"
+  }
+}
