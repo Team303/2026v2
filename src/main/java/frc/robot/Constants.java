@@ -101,13 +101,15 @@ public final class Constants {
     // TURRET CONSTANTS
     public static final int TURRET_THROUGHBORE_ID = 14; // NEED TO CHANGE
     public static final int TURRET_MOTOR_ID = 41; // NEED TO CHANGE
-    public static final double TURRET_kP = 0.0;
+    public static final double TURRET_kP = 2.9;
     public static final double TURRET_kI = 0.0;
-    public static final double TURRET_kD = 0.0;
+    public static final double TURRET_kD = 0.34;
     public static final double TURRET_kA = 0.0;
 
     public static final double TURRET_mmV = 10;
     public static final double TURRET_mmA = 20;
+
+    public static final double TURRET_HOME_POS = -0.1333;
 
     // FLYWHEEL CONSTANTS
     public static final int FLYWHEEL_LEFT_MOTOR_ID = 99; // NEED TO CHANGE
