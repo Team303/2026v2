@@ -101,13 +101,16 @@ public final class Constants {
     // TURRET CONSTANTS
     public static final int TURRET_THROUGHBORE_ID = 14; // NEED TO CHANGE
     public static final int TURRET_MOTOR_ID = 41; // NEED TO CHANGE
-    public static final double TURRET_kP = 0.0;
+    public static final double TURRET_kP = 6;
     public static final double TURRET_kI = 0.0;
-    public static final double TURRET_kD = 0.0;
+    public static final double TURRET_kD = 0.05;
     public static final double TURRET_kA = 0.0;
 
-    public static final double TURRET_mmV = 10;
-    public static final double TURRET_mmA = 20;
+    public static final double TURRET_mmV = 100;
+    public static final double TURRET_mmA = 200;
+
+    public static final double TURRET_HOME_POS = -0.153564453125;
+    public static final double TEST_HUB_POS = 0.139404296875;
 
     // FLYWHEEL CONSTANTS
     public static final int FLYWHEEL_LEFT_MOTOR_ID = 99; // NEED TO CHANGE
@@ -128,6 +131,7 @@ public final class Constants {
     public static final double FLYWHEEL_mmA = 20;
 
     // HOOD CONSTANTS
+    public static final int HOOD_THROUGHBORE_ID = 99; // NEED TO CHANGE
     public static final int HOOD_MOTOR_ID = 99; // NEED TO CHANGE
     public static final double HOOD_kP = 0.0;
     public static final double HOOD_kI = 0.0;
@@ -135,6 +139,8 @@ public final class Constants {
 
     public static final double HOOD_mmV = 10;
     public static final double HOOD_mmA = 20;
+
+    public static final double HOOD_HOME_POS = 0.0; // NEED TO CHANGE
   }
 
   public static class Algae {
