@@ -28,7 +28,8 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
-import frc.robot.subsystems.turret.Turret;
+import frc.robot.subsystems.shooter.Hood;
+import frc.robot.subsystems.shooter.Turret;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
@@ -50,6 +51,8 @@ public class RobotContainer {
   public static Vision vision;
 
   public static Turret turret;
+
+  public static Hood hood;
 
   // Controller
   public static CommandXboxController controller = new CommandXboxController(0);
@@ -77,6 +80,7 @@ public class RobotContainer {
             drive::addVisionMeasurement,
             new VisionIOLimelight("limelight-test", drive::getRotation));*/
         turret = new Turret();
+        hood = new Hood();
         // The ModuleIOTalonFXS implementation provides an example implementation for
         // TalonFXS controller connected to a CANdi with a PWM encoder. The
         // implementations
@@ -196,7 +200,7 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                     drive)
                 .ignoringDisable(true));*/
-    operatorController.x().onTrue(new TurnToPosition(Constants.Shooter.TEST_HUB_POS));
+    operatorController.x().onTrue(new TurnToPosition(Constants.Shooter.Turret.TEST_HUB_POS));
     operatorController.a().onTrue(new ZeroTurret());
     operatorController.b().onTrue(new HomeTurret());
    

@@ -99,48 +99,50 @@ public final class Constants {
 
   public static class Shooter {
     // TURRET CONSTANTS
-    public static final int TURRET_THROUGHBORE_ID = 14; // NEED TO CHANGE
-    public static final int TURRET_MOTOR_ID = 41; // NEED TO CHANGE
-    public static final double TURRET_kP = 6;
-    public static final double TURRET_kI = 0.0;
-    public static final double TURRET_kD = 0.05;
-    public static final double TURRET_kA = 0.0;
+    public static class Turret {
+      public static final int TURRET_THROUGHBORE_ID = 14; // NEED TO CHANGE
+      public static final int TURRET_MOTOR_ID = 41; // NEED TO CHANGE
+      public static final double TURRET_kS = 0.4;
+      public static final double TURRET_kP = 6;
+      public static final double TURRET_kI = 0.0;
+      public static final double TURRET_kD = 0.05;
+      public static final double TURRET_kA = 0.0;
 
-    public static final double TURRET_mmV = 100;
-    public static final double TURRET_mmA = 200;
+      public static final double TURRET_maxV = 100;
+      public static final double TURRET_maxA = 200;
 
-    public static final double TURRET_HOME_POS = -0.153564453125;
-    public static final double TEST_HUB_POS = 0.139404296875;
+      public static final double TURRET_MOTOR_THROUGHBORE_RATIO = 2.8;
 
-    // FLYWHEEL CONSTANTS
-    public static final int FLYWHEEL_LEFT_MOTOR_ID = 99; // NEED TO CHANGE
-    public static final double FLYWHEEL_LEFT_kP = 0.0;
-    public static final double FLYWHEEL_LEFT_kI = 0.0;
-    public static final double FLYWHEEL_LEFT_kD = 0.0;
-    public static final double FLYWHEEL_LEFT_kS = 0.0;
-    public static final double FLYWHEEL_LEFT_kV = 0.0;
+      public static final double TURRET_HOME_POS = -0.153564453125;
+      public static final double TEST_HUB_POS = 0.139404296875;
+    }
+    // FLYWHEEL CONSTANTS --> Need to tune all PID 
+    public static class Flywheel {
+      public static final int FLYWHEEL_LEFT_MOTOR_ID = 99; // NEED TO CHANGE
+      public static final int FLYWHEEL_RIGHT_MOTOR_ID = 99; // NEED TO CHANGE
+      public static final double FLYWHEEL_kS = 0.0;
+      public static final double FLYWHEEL_kP = 0.0;
+      public static final double FLYWHEEL_kI = 0.0;
+      public static final double FLYWHEEL_kD = 0.0;
+      public static final double FLYWHEEL_kV = 0.0;
 
-    public static final int FLYWHEEL_RIGHT_MOTOR_ID = 99; // NEED TO CHANGE
-    public static final double FLYWHEEL_RIGHT_kP = 0.0;
-    public static final double FLYWHEEL_RIGHT_kI = 0.0;
-    public static final double FLYWHEEL_RIGHT_kD = 0.0;
-    public static final double FLYWHEEL_RIGHT_kS = 0.0;
-    public static final double FLYWHEEL_RIGHT_kV = 0.0;
+      public static final double FLYWHEEL_maxV = 10;
+      public static final double FLYWHEEL_maxA = 20;
+    }
+    // HOOD CONSTANTS --> NEED TO TUNE ALL PID
+    public static class Hood {
+      public static final int HOOD_THROUGHBORE_ID = 99; // NEED TO CHANGE
+      public static final int HOOD_MOTOR_ID = 99; // NEED TO CHANGE
+      public static final double HOOD_kS = 0.0;
+      public static final double HOOD_kP = 0.0;
+      public static final double HOOD_kI = 0.0;
+      public static final double HOOD_kD = 0.0;
 
-    public static final double FLYWHEEL_mmV = 10;
-    public static final double FLYWHEEL_mmA = 20;
+      public static final double HOOD_maxV = 10;
+      public static final double HOOD_maxA = 20;
 
-    // HOOD CONSTANTS
-    public static final int HOOD_THROUGHBORE_ID = 99; // NEED TO CHANGE
-    public static final int HOOD_MOTOR_ID = 99; // NEED TO CHANGE
-    public static final double HOOD_kP = 0.0;
-    public static final double HOOD_kI = 0.0;
-    public static final double HOOD_kD = 0.0;
-
-    public static final double HOOD_mmV = 10;
-    public static final double HOOD_mmA = 20;
-
-    public static final double HOOD_HOME_POS = 0.0; // NEED TO CHANGE
+      public static final double HOOD_HOME_POS = 0.0; // NEED TO CHANGE
+    }
   }
 
   public static class Algae {

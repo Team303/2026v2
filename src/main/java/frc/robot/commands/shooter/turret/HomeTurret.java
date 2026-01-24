@@ -20,17 +20,17 @@ public class HomeTurret extends Command {
 
   @Override
   public void execute() {
-    turret.moveToPos(Constants.Shooter.TURRET_HOME_POS);
+    turret.moveToPos(Constants.Shooter.Turret.TURRET_HOME_POS);
   }
 
   @Override
   public boolean isFinished() {
-    return Math.abs(Constants.Shooter.TURRET_HOME_POS - turret.getMotorPosition()) < GOAL_THRESHOLD;
+    return Math.abs(Constants.Shooter.Turret.TURRET_HOME_POS - turret.getMotorPosition()) < GOAL_THRESHOLD;
   }
 
   @Override
   public void end(boolean interrupted) {
-    System.out.println("GOAL: " + Constants.Shooter.TURRET_HOME_POS + "; END: " + turret.getMotorPosition() + "; DIFF" + Math.abs(Constants.Shooter.TURRET_HOME_POS - turret.getMotorPosition()));
+    System.out.println("GOAL: " + Constants.Shooter.Turret.TURRET_HOME_POS + "; END: " + turret.getMotorPosition() + "; DIFF" + Math.abs(Constants.Shooter.Turret.TURRET_HOME_POS - turret.getMotorPosition()));
     turret.stopMotor();
   }
 }
