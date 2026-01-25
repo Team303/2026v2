@@ -13,6 +13,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.controls.Follower;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import org.littletonrobotics.junction.Logger;
 import frc.robot.util.LoggedTunableNumber;
 
 public class Flywheel extends SubsystemBase {
@@ -22,20 +23,20 @@ public class Flywheel extends SubsystemBase {
     private final LoggedNetworkNumber leftMotorSpeed;
     private final LoggedNetworkNumber rightMotorSpeed;
 
-    public static LoggedTunableNumber TESTING_kP =
+    public static LoggedTunableNumber FLY_TESTING_kP =
         new LoggedTunableNumber("FLYWHEEL TESTING_kP", Constants.Shooter.Flywheel.FLYWHEEL_kP);
-    public static LoggedTunableNumber TESTING_kI =
+    public static LoggedTunableNumber FLY_TESTING_kI =
         new LoggedTunableNumber("FLYWHEEL TESTING_kI", Constants.Shooter.Flywheel.FLYWHEEL_kI);
-    public static LoggedTunableNumber TESTING_kD =
+    public static LoggedTunableNumber FLY_TESTING_kD =
         new LoggedTunableNumber("FLYWHEEL TESTING_kD", Constants.Shooter.Flywheel.FLYWHEEL_kD);
-    public static LoggedTunableNumber TESTING_kV =
+    public static LoggedTunableNumber FLY_TESTING_kV =
         new LoggedTunableNumber("FLYWHEEL TESTING_kV", Constants.Shooter.Flywheel.FLYWHEEL_kV);
-    public static LoggedTunableNumber TESTING_mmV =
+    public static LoggedTunableNumber FLY_TESTING_mmV =
         new LoggedTunableNumber("FLYWHEEL TESTING_mmV", Constants.Shooter.Flywheel.FLYWHEEL_maxV);
-    public static LoggedTunableNumber TESTING_mmA =
+    public static LoggedTunableNumber FLY_TESTING_mmA =
         new LoggedTunableNumber("FLYWHEEL TESTING_mmA", Constants.Shooter.Flywheel.FLYWHEEL_maxA);
 
-    public static LoggedTunableNumber GOAL_POS = new LoggedTunableNumber("FLYWHEEL GOAL_SPEED", 0);
+    public static LoggedTunableNumber GOAL_SPEED = new LoggedTunableNumber("FLYWHEEL GOAL_SPEED", 0);
 
     public Flywheel() {
         leftFlywheelMotor = new TalonFX(Constants.Shooter.Flywheel.FLYWHEEL_LEFT_MOTOR_ID);
@@ -75,6 +76,8 @@ public class Flywheel extends SubsystemBase {
 
         leftMotorSpeed = new LoggedNetworkNumber("LEFT FLYWHEEL SPEED", 0.0);
         rightMotorSpeed = new LoggedNetworkNumber("RIGHT FLYWHEEL SPEED", 0.0);
+
+        FLY_TESTING_kP = new LoggedTunableNumber("FLYWHEEL TESTING_kP", Constants.Shooter.Flywheel.FLYWHEEL_kP);
     }   
 
 
@@ -83,16 +86,17 @@ public class Flywheel extends SubsystemBase {
 
         var Slot0Configs = flywheelMotorsConfig.Slot0;
         Slot0Configs.kS = Constants.Shooter.Flywheel.FLYWHEEL_kS;
-        Slot0Configs.kP = Constants.Shooter.Flywheel.FLYWHEEL_kP;
-        Slot0Configs.kI = Constants.Shooter.Flywheel.FLYWHEEL_kI;
-        Slot0Configs.kD = Constants.Shooter.Flywheel.FLYWHEEL_kD;
-        Slot0Configs.kV = Constants.Shooter.Flywheel.FLYWHEEL_kV;
+        Slot0Configs.kP = FLY_TESTING_kP.getAsDouble();
+        Slot0Configs.kI = FLY_TESTING_kI.getAsDouble();
+        Slot0Configs.kD = FLY_TESTING_kD.getAsDouble();
+        Slot0Configs.kV = FLY_TESTING_kV.getAsDouble();
 
         var motionMagicConfigs = flywheelMotorsConfig.MotionMagic;
-        motionMagicConfigs.MotionMagicCruiseVelocity = Constants.Shooter.Flywheel.FLYWHEEL_maxV;
-        motionMagicConfigs.MotionMagicAcceleration = Constants.Shooter.Flywheel.FLYWHEEL_maxA;
+        motionMagicConfigs.MotionMagicCruiseVelocity = FLY_TESTING_mmV.getAsDouble();;
+        motionMagicConfigs.MotionMagicAcceleration = FLY_TESTING_mmA.getAsDouble();;
 
         leftFlywheelMotor.getConfigurator().apply(flywheelMotorsConfig); //MASTER MOTOR
+        rightFlywheelMotor.getConfigurator().apply(flywheelMotorsConfig);
     }
 
     public double getLeftMotorSpeed() {
@@ -105,9 +109,11 @@ public class Flywheel extends SubsystemBase {
 
     public void getToSpeed(double speed) {
         final MotionMagicVelocityVoltage mmRequest = new MotionMagicVelocityVoltage(speed);
-        leftFlywheelMotor.setControl(mmRequest);
-        rightFlywheelMotor.setControl(new Follower(Constants.Shooter.Flywheel.FLYWHEEL_LEFT_MOTOR_ID, 
-                                                   MotorAlignmentValue.Opposed));
+        //leftFlywheelMotor.setControl(mmRequest);
+        rightFlywheelMotor.setControl(mmRequest);//new Follower(Constants.Shooter.Flywheel.FLYWHEEL_LEFT_MOTOR_ID, 
+                                                 // MotorAlignmentValue.Opposed));
+        leftFlywheelMotor.setControl(new Follower(Constants.Shooter.Flywheel.FLYWHEEL_RIGHT_MOTOR_ID,
+                                        MotorAlignmentValue.Opposed));
     }
 
     public void stopMotors() {
@@ -119,6 +125,10 @@ public class Flywheel extends SubsystemBase {
     public void periodic() {
         leftMotorSpeed.set(getLeftMotorSpeed());
         rightMotorSpeed.set(getRightMotorSpeed());
+        //Logger.recordOutput("Flywheel/LeftMotorSpeed", getLeftMotorSpeed());
+        //Logger.recordOutput("Flywheel/RightMotorSpeed", getRightMotorSpeed());
+        //Logger.recordOutput("Flywheel/LeftMotorVoltage", leftFlywheelMotor.getMotorVoltage().getValueAsDouble());
+        //Logger.recordOutput("Flywheel/RightMotorVoltage", rightFlywheelMotor.getMotorVoltage().getValueAsDouble());
     }
 
     @Override

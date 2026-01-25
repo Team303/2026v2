@@ -114,6 +114,7 @@ public class Turret extends SubsystemBase {
     return turretMotor.getPosition().getValueAsDouble();
   }
 
+  //USE drive.getPose() to get
   public void moveToPos(double pos) {
     final MotionMagicVoltage mmRequest = new MotionMagicVoltage(pos);
     turretMotor.setControl(mmRequest.withPosition(pos));
@@ -128,6 +129,8 @@ public class Turret extends SubsystemBase {
     throughBorePosition.set(getThroughPosition());
     motorPosition.set(getMotorPosition());
   }
+
+  
 
   @Override
   public void simulationPeriodic() {

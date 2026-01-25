@@ -19,7 +19,7 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 public class Hood extends SubsystemBase {
 
   private final TalonFX hoodMotor;
-  private final CANcoder throughBore; // Powered by CANCoder
+  //private final CANcoder throughBore; // Powered by CANCoder
 
   private final LoggedNetworkNumber motorPosition;
   private final LoggedNetworkNumber throughBorePosition;
@@ -39,19 +39,19 @@ public class Hood extends SubsystemBase {
 
 
   public Hood() {
-    throughBore = new CANcoder(Constants.Shooter.Hood.HOOD_THROUGHBORE_ID);
+    //throughBore = new CANcoder(Constants.Shooter.Hood.HOOD_THROUGHBORE_ID);
     CANcoderConfiguration cc_cfg = new CANcoderConfiguration();
     cc_cfg.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0.5;
-    throughBore.getConfigurator().apply(cc_cfg);
+    //throughBore.getConfigurator().apply(cc_cfg);
 
     hoodMotor = new TalonFX(Constants.Shooter.Hood.HOOD_MOTOR_ID);
 
     var hoodMotorConfig = new TalonFXConfiguration();
 
-    hoodMotorConfig.Feedback.FeedbackRemoteSensorID = throughBore.getDeviceID();
-    hoodMotorConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
-    hoodMotorConfig.Feedback.SensorToMechanismRatio = 1.0;
-    hoodMotorConfig.Feedback.RotorToSensorRatio = 1.0; //NEED TO CHANGE
+    //hoodMotorConfig.Feedback.FeedbackRemoteSensorID = throughBore.getDeviceID();
+    //hoodMotorConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
+    //hoodMotorConfig.Feedback.SensorToMechanismRatio = 1.0;
+    //hoodMotorConfig.Feedback.RotorToSensorRatio = 1.0; //NEED TO CHANGE
 
     var Slot0Configs = hoodMotorConfig.Slot0;
     Slot0Configs.kS = Constants.Shooter.Hood.HOOD_kS;
@@ -85,10 +85,10 @@ public class Hood extends SubsystemBase {
   public void createNewConfig() {
     var hoodMotorConfig = new TalonFXConfiguration();
 
-    hoodMotorConfig.Feedback.FeedbackRemoteSensorID = throughBore.getDeviceID();
-    hoodMotorConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
-    hoodMotorConfig.Feedback.SensorToMechanismRatio = 1.0;
-    hoodMotorConfig.Feedback.RotorToSensorRatio = 1.0; //NEED TO CHANGE
+    //hoodMotorConfig.Feedback.FeedbackRemoteSensorID = throughBore.getDeviceID();
+    //hoodMotorConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
+    //hoodMotorConfig.Feedback.SensorToMechanismRatio = 1.0;
+    //hoodMotorConfig.Feedback.RotorToSensorRatio = 1.0; //NEED TO CHANGE
 
     var Slot0Configs = hoodMotorConfig.Slot0;
     Slot0Configs.kS = Constants.Shooter.Hood.HOOD_kS;
@@ -103,7 +103,7 @@ public class Hood extends SubsystemBase {
   }
 
   public double getThroughPosition() {
-    return throughBore.getAbsolutePosition().getValueAsDouble();
+    return 0.0;//throughBore.getAbsolutePosition().getValueAsDouble();
   }
 
   public double getMotorPosition() {

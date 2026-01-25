@@ -118,21 +118,21 @@ public final class Constants {
     }
     // FLYWHEEL CONSTANTS --> Need to tune all PID 
     public static class Flywheel {
-      public static final int FLYWHEEL_LEFT_MOTOR_ID = 99; // NEED TO CHANGE
-      public static final int FLYWHEEL_RIGHT_MOTOR_ID = 99; // NEED TO CHANGE
-      public static final double FLYWHEEL_kS = 0.0;
-      public static final double FLYWHEEL_kP = 0.0;
+      public static final int FLYWHEEL_LEFT_MOTOR_ID = 37;
+      public static final int FLYWHEEL_RIGHT_MOTOR_ID = 21;
+      public static final double FLYWHEEL_kS = 0.19;
+      public static final double FLYWHEEL_kP = 0.3;
       public static final double FLYWHEEL_kI = 0.0;
       public static final double FLYWHEEL_kD = 0.0;
-      public static final double FLYWHEEL_kV = 0.0;
+      public static final double FLYWHEEL_kV = 0.1;
 
-      public static final double FLYWHEEL_maxV = 10;
-      public static final double FLYWHEEL_maxA = 20;
+      public static final double FLYWHEEL_maxV = 150;
+      public static final double FLYWHEEL_maxA = 5000;
     }
     // HOOD CONSTANTS --> NEED TO TUNE ALL PID
     public static class Hood {
       public static final int HOOD_THROUGHBORE_ID = 99; // NEED TO CHANGE
-      public static final int HOOD_MOTOR_ID = 99; // NEED TO CHANGE
+      public static final int HOOD_MOTOR_ID = 37; // NEED TO CHANGE
       public static final double HOOD_kS = 0.0;
       public static final double HOOD_kP = 0.0;
       public static final double HOOD_kI = 0.0;

@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.subsystems.shooter.Flywheel;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.DriveToPoseStraight;
 import frc.robot.commands.shooter.turret.TurnToPosition;
@@ -36,6 +37,8 @@ import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.util.LoggedTunableNumber;
 
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+
+import frc.robot.commands.shooter.flywheel.TurnToSpeed;
 import frc.robot.commands.shooter.turret.HomeTurret;
 
 /**
@@ -53,6 +56,8 @@ public class RobotContainer {
   public static Turret turret;
 
   public static Hood hood;
+
+  public static Flywheel flywheel;
 
   // Controller
   public static CommandXboxController controller = new CommandXboxController(0);
@@ -80,7 +85,8 @@ public class RobotContainer {
             drive::addVisionMeasurement,
             new VisionIOLimelight("limelight-test", drive::getRotation));*/
         turret = new Turret();
-        hood = new Hood();
+        hood = null;//new Hood();
+        flywheel = new Flywheel();
         // The ModuleIOTalonFXS implementation provides an example implementation for
         // TalonFXS controller connected to a CANdi with a PWM encoder. The
         // implementations
@@ -204,6 +210,7 @@ public class RobotContainer {
     operatorController.a().onTrue(new ZeroTurret());
     operatorController.b().onTrue(new HomeTurret());
    
+    operatorController.y().toggleOnTrue(new TurnToSpeed());
   
   }
 
