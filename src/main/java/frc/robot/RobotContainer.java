@@ -31,6 +31,7 @@ import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.shooter.Hood;
 import frc.robot.subsystems.shooter.Turret;
+import frc.robot.subsystems.shooter.TurretSIM;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
@@ -55,6 +56,8 @@ public class RobotContainer {
 
   public static Turret turret;
 
+  public static TurretSIM turretSIM;
+
   public static Hood hood;
 
   public static Flywheel flywheel;
@@ -68,6 +71,7 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+    System.out.println("BANANANANNNANNA: " + Constants.currentMode);
     switch (Constants.currentMode) {
       case REAL:
         // Real robot, instantiate hardware IO implementations
@@ -116,7 +120,7 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
-
+        turretSIM = new TurretSIM();
         break;
 
       default:
@@ -163,7 +167,7 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     // Default command, normal field-relative drive
-    /*
+    
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
@@ -171,7 +175,8 @@ public class RobotContainer {
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
 
-    // Lock to 0° when A button is held
+    /*
+            // Lock to 0° when A button is held
     controller
         .a()
         .whileTrue(
@@ -206,12 +211,13 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                     drive)
                 .ignoringDisable(true));*/
+    /*
     operatorController.x().onTrue(new TurnToPosition(Constants.Shooter.Turret.TEST_HUB_POS));
     operatorController.a().onTrue(new ZeroTurret());
     operatorController.b().onTrue(new HomeTurret());
    
     operatorController.y().toggleOnTrue(new TurnToSpeed());
-  
+    */
   }
 
   /**

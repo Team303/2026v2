@@ -112,6 +112,7 @@ public class LocalADStarAK implements Pathfinder {
     public LocalADStar adStar = new LocalADStar();
     public boolean isNewPathAvailable = false;
     public List<PathPoint> currentPathPoints = Collections.emptyList();
+    
 
     @Override
     public void toLog(LogTable table) {

@@ -63,7 +63,7 @@ public class Vision extends SubsystemBase {
   @Override
   public void periodic() {
     for (int i = 0; i < io.length; i++) {
-      System.out.println("hello: " + io.length);
+      //System.out.println("hello: " + io.length);
       io[i].updateInputs(inputs[i]);
       Logger.processInputs("Vision/Camera" + Integer.toString(i), inputs[i]);
     }
