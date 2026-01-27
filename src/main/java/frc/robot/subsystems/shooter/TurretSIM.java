@@ -1,6 +1,7 @@
 package frc.robot.subsystems.shooter;
 
 import static frc.robot.RobotContainer.drive;
+import static frc.robot.RobotContainer.tempDrivebase;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -58,8 +59,8 @@ public class TurretSIM extends SubsystemBase {
     public void simulationPeriodic() {
         // This method will be called once per scheduler run during simulation
         wallahi++;
-        if (wallahi % 5 == 0) {
-            Pose2d currentPose = drive.getPose();
+        if (wallahi % 100 == 0) {
+            Pose2d currentPose = tempDrivebase.getTempPose();
             if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
                 System.out.println("Turret Rotate: " + getRedHubRotate(currentPose));
             } else {

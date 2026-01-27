@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.subsystems.shooter.Flywheel;
 import frc.robot.commands.DriveCommands;
+import frc.robot.commands.DriveTemp;
 import frc.robot.commands.DriveToPoseStraight;
 import frc.robot.commands.shooter.turret.TurnToPosition;
 import frc.robot.commands.shooter.turret.ZeroTurret;
@@ -30,6 +31,7 @@ import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.shooter.Hood;
+import frc.robot.subsystems.shooter.TempDrive;
 import frc.robot.subsystems.shooter.Turret;
 import frc.robot.subsystems.shooter.TurretSIM;
 import frc.robot.subsystems.vision.Vision;
@@ -41,6 +43,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import frc.robot.commands.shooter.flywheel.TurnToSpeed;
 import frc.robot.commands.shooter.turret.HomeTurret;
+import frc.robot.commands.shooter.turret.TurnToHub;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -58,13 +61,15 @@ public class RobotContainer {
 
   public static TurretSIM turretSIM;
 
+  public static TempDrive tempDrivebase;
+
   public static Hood hood;
 
   public static Flywheel flywheel;
 
   // Controller
   public static CommandXboxController controller = new CommandXboxController(0);
-  private static CommandXboxController operatorController = new CommandXboxController(1);
+  public static CommandXboxController operatorController = new CommandXboxController(1);
 
   // Dashboard inputs
  //private final LoggedDashboardChooser<Command> autoChooser;
@@ -89,8 +94,9 @@ public class RobotContainer {
             drive::addVisionMeasurement,
             new VisionIOLimelight("limelight-test", drive::getRotation));*/
         turret = new Turret();
+        tempDrivebase = new TempDrive();
         hood = null;//new Hood();
-        flywheel = new Flywheel();
+        flywheel = null;//new Flywheel();
         // The ModuleIOTalonFXS implementation provides an example implementation for
         // TalonFXS controller connected to a CANdi with a PWM encoder. The
         // implementations
@@ -121,6 +127,7 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackRight));
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         turretSIM = new TurretSIM();
+        tempDrivebase = new TempDrive();
         break;
 
       default:
@@ -168,13 +175,14 @@ public class RobotContainer {
   private void configureButtonBindings() {
     // Default command, normal field-relative drive
     
+    /*
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
             () -> -controller.getLeftY(),
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
-
+    */
     /*
             // Lock to 0° when A button is held
     controller
@@ -211,13 +219,16 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                     drive)
                 .ignoringDisable(true));*/
-    /*
+    
     operatorController.x().onTrue(new TurnToPosition(Constants.Shooter.Turret.TEST_HUB_POS));
     operatorController.a().onTrue(new ZeroTurret());
     operatorController.b().onTrue(new HomeTurret());
-   
+    operatorController.y().toggleOnTrue(new TurnToHub());
+    /*
     operatorController.y().toggleOnTrue(new TurnToSpeed());
     */
+    tempDrivebase.setDefaultCommand(new DriveTemp());
+    
   }
 
   /**

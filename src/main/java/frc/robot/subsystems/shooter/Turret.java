@@ -10,11 +10,15 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.LoggedTunableNumber;
 
 import static frc.robot.RobotContainer.drive;
+import static frc.robot.RobotContainer.tempDrivebase;
 
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
@@ -26,21 +30,27 @@ public class Turret extends SubsystemBase {
   private final LoggedNetworkNumber motorPosition;
   private final LoggedNetworkNumber throughBorePosition;
 
-    public static LoggedTunableNumber TESTING_kP =
-        new LoggedTunableNumber("TURRET TESTING_kP", Constants.Shooter.Turret.TURRET_kP);
-    public static LoggedTunableNumber TESTING_kI =
-        new LoggedTunableNumber("TURRET TESTING_kI", Constants.Shooter.Turret.TURRET_kI);
-    public static LoggedTunableNumber TESTING_kD =
-        new LoggedTunableNumber("TURRET TESTING_kD", Constants.Shooter.Turret.TURRET_kD);
-    public static LoggedTunableNumber TESTING_kA =
-        new LoggedTunableNumber("TURRET TESTING_kA", Constants.Shooter.Turret.TURRET_kA);
-    public static LoggedTunableNumber TESTING_mmV =
-        new LoggedTunableNumber("TURRET TESTING_mmV", Constants.Shooter.Turret.TURRET_maxV);
-    public static LoggedTunableNumber TESTING_mmA =
-        new LoggedTunableNumber("TURRET TESTING_mmA", Constants.Shooter.Turret.TURRET_maxA);
+  public static LoggedTunableNumber TESTING_kP =
+      new LoggedTunableNumber("TURRET TESTING_kP", Constants.Shooter.Turret.TURRET_kP);
+  public static LoggedTunableNumber TESTING_kI =
+      new LoggedTunableNumber("TURRET TESTING_kI", Constants.Shooter.Turret.TURRET_kI);
+  public static LoggedTunableNumber TESTING_kD =
+      new LoggedTunableNumber("TURRET TESTING_kD", Constants.Shooter.Turret.TURRET_kD);
+  public static LoggedTunableNumber TESTING_kA =
+      new LoggedTunableNumber("TURRET TESTING_kA", Constants.Shooter.Turret.TURRET_kA);
+  public static LoggedTunableNumber TESTING_mmV =
+      new LoggedTunableNumber("TURRET TESTING_mmV", Constants.Shooter.Turret.TURRET_maxV);
+  public static LoggedTunableNumber TESTING_mmA =
+      new LoggedTunableNumber("TURRET TESTING_mmA", Constants.Shooter.Turret.TURRET_maxA);
 
-    public static LoggedTunableNumber GOAL_POS = new LoggedTunableNumber("TURRET GOAL_POS", Constants.Shooter.Turret.TEST_HUB_POS);
+  public static LoggedTunableNumber GOAL_POS = new LoggedTunableNumber("TURRET GOAL_POS", Constants.Shooter.Turret.TEST_HUB_POS);
 
+  private static int wallahi;
+
+  private static final double BLUE_HUB_X = 4.6269;
+  private static final double BLUE_HUB_Y = 4.03;
+  private static final double RED_HUB_X = 11.91358;
+  private static final double RED_HUB_Y = 4.03;
 
   public Turret() {
     throughBore = new CANcoder(Constants.Shooter.Turret.TURRET_THROUGHBORE_ID);
@@ -85,6 +95,8 @@ public class Turret extends SubsystemBase {
 
     throughBorePosition = new LoggedNetworkNumber("Turret Absolute Position", 0.0);
     motorPosition = new LoggedNetworkNumber("Turret Motor Position", 0.0);
+    
+    wallahi = 0;
   }
 
   public void createNewConfig() {
@@ -126,14 +138,52 @@ public class Turret extends SubsystemBase {
     turretMotor.setVoltage(0);
   }
 
+  private double getBlueHubRotate(Pose2d curPose) {
+    double xDIFF = BLUE_HUB_X - curPose.getX();
+    double yDIFF = BLUE_HUB_Y - curPose.getY();
+    double radiansRotate = -Math.atan(yDIFF / xDIFF);
+
+    double finalRadiansRotate = radiansRotate + curPose.getRotation().getRadians();
+    double finalAngleRotate = Math.toDegrees(finalRadiansRotate);
+    return finalAngleRotate;
+  }
+
+  private double getRedHubRotate(Pose2d curPose) {
+    double xDIFF = RED_HUB_X - curPose.getX();
+    double yDIFF = RED_HUB_Y - curPose.getY(); 
+    double radiansRotate = -Math.atan(yDIFF / xDIFF);
+    
+    double finalRadiansRotate = radiansRotate - normalizeRedRot(curPose.getRotation().getRadians());
+    double finalAngleRotate = Math.toDegrees(finalRadiansRotate);
+
+    return finalAngleRotate;
+  }
+
+  private double normalizeRedRot(double input) {
+    double output = -(input - Math.PI);
+    if (output > Math.PI) {
+        output -= 2 * Math.PI;
+    }
+    return output;
+  }
+
+  public double getTurretTurnPos() {
+    Pose2d currentPose = tempDrivebase.getTempPose();
+    if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) return getRedHubRotate(currentPose);
+    return getBlueHubRotate(currentPose);
+  }
+
   @Override
   public void periodic() {
     throughBorePosition.set(getThroughPosition());
     motorPosition.set(getMotorPosition());
+    wallahi++;
+    if (wallahi % 100 == 0) {
+        getTurretTurnPos();  
+    } else if (wallahi > 2_000_000) wallahi = 0;
   }
 
   
-
   @Override
   public void simulationPeriodic() {
     // This method will be called once per scheduler run during simulation
