@@ -8,18 +8,26 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.DriveToPoseStraight;
+import frc.robot.commands.ClimberCommands.GoToPosition;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.Climber;
+import frc.robot.subsystems.IntakeBelt;
+import frc.robot.subsystems.Spindexer;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -43,8 +51,15 @@ public class RobotContainer {
 
   public static Vision vision;
 
+    public static Spindexer spindexer;
+
+    public static Climber climber;
+
+  //  public static IntakeBelt intakeBelt;
   // Controller
   public static CommandXboxController controller = new CommandXboxController(0);
+    public static CommandXboxController opController = new CommandXboxController(1);
+
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -66,7 +81,12 @@ public class RobotContainer {
         vision =
             new Vision(
                 drive::addVisionMeasurement,
-                new VisionIOLimelight("limelight-test", drive::getRotation));
+                new VisionIOLimelight("limelight-test", drive::getRotation),
+               new VisionIOLimelight("limelight-tower", drive::getRotation),
+                new VisionIOLimelight("limelight-midfron", drive::getRotation));
+        spindexer = null;
+        climber = new Climber();
+       // intakeBelt = new IntakeBelt();
         // The ModuleIOTalonFXS implementation provides an example implementation for
         // TalonFXS controller connected to a CANdi with a PWM encoder. The
         // implementations
@@ -133,6 +153,12 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
+    configureNamedCommands();
+  }
+
+  public void configureNamedCommands() {
+    NamedCommands.registerCommand("Climb L1", new GoToPosition(climber, 10));
+    NamedCommands.registerCommand("Lower Climb", new GoToPosition(climber, 0));
   }
 
   /**
@@ -167,13 +193,25 @@ public class RobotContainer {
         .start()
         .toggleOnTrue(
             new DriveToPoseStraight(
-                drive, new Pose2d(new Translation2d(1.9, 5.43), new Rotation2d(0))));
-
+                drive, new Pose2d(new Translation2d(1.9, 5.43), new Rotation2d(Units.degreesToRadians(-14.3)))));
     controller
-        .rightBumper()
+        .rightTrigger()
         .toggleOnTrue(
             new DriveToPoseStraight(
-                drive, new Pose2d(new Translation2d(1, 1), new Rotation2d(180))));
+                drive, new Pose2d(new Translation2d(3, 4), new Rotation2d(0))));
+
+    controller
+        .back()
+        .toggleOnTrue(
+            new DriveToPoseStraight(
+                drive, new Pose2d(new Translation2d(1.9, 2.57), new Rotation2d(Units.degreesToRadians(14.3)))));
+
+
+    opController
+        .start()
+        .toggleOnTrue(
+            new DriveToPoseStraight(
+                drive, new Pose2d(new Translation2d(1.08, 4.6), new Rotation2d(Units.degreesToRadians(0)))));
 
     // Reset gyro to 0° when B button is pressed
     controller
@@ -185,6 +223,11 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                     drive)
                 .ignoringDisable(true));
+
+    controller.leftBumper().toggleOnTrue(new GoToPosition(climber, 10));
+    controller.leftBumper().toggleOnFalse(new GoToPosition(climber, 0));
+
+   // controller.y().toggleOnTrue()
   }
 
   /**

@@ -8,6 +8,12 @@
         "open": true
       },
       "limelight-front": {
+        "double[]##v_/limelight-front/botpose_orb_wpiblue": {
+          "open": true
+        },
+        "double[]##v_/limelight-front/botpose_wpiblue": {
+          "open": true
+        },
         "open": true
       },
       "limelight-test": {

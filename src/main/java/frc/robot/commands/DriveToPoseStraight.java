@@ -62,9 +62,9 @@ public class DriveToPoseStraight extends Command {
   @Override
   public void initialize() {
     // Reset controllers without parameters
-    for (int i = 0; i < 1000; i++) {
-      System.out.println("tpose: " + targetPose);
-    }
+    // for (int i = 0; i < 1000; i++) {
+    //   System.out.println("tpose: " + targetPose);
+    // }
     xController.reset();
     yController.reset();
     thetaController.reset();

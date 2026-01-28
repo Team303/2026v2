@@ -79,70 +79,34 @@ public final class Constants {
     public static double maxAngularVelocityRadPerSec = 300;
 
     public static class XController {
-      public static double kP = 9;
+      public static double kP = 3;
       public static double kD = 0;
       public static double tolerance = 0.01; // ~.4 inches
     }
 
     public static class YController {
-      public static double kP = 4.5;
+      public static double kP = 3;
       public static double kD = 0;
       public static double tolerance = 0.01;
     }
 
     public static class ThetaController {
-      public static double kP = 7;
+      public static double kP = 30;
       public static double kD = 0;
-      public static double tolerance = Units.degreesToRadians(0.25);
+      public static double tolerance = Units.degreesToRadians(1);
     }
   }
 
-  public static class Algae {
-    public static final int INTAKE_MOTOR_ID = 32;
-    public static final int PIVOT_MOTOR_ID = 31;
-    public static final double PIVOT_MOTOR_Kp = 0.1;
-    public static final double PIVOT_FEED_FORWARD_KS = 0;
-    public static final double PIVOT_FEED_FORWARD_KG = 0.22;
-    public static final double PIVOT_FEED_FORWARD_KV = 1.98;
-    public static final double PIVOT_FEED_FORWARD_KA = 0.01;
-
-    public static final double HOME_POSITION = -0.445;
-    public static final double DEALGAE_POSITION = -0.230;
+  public static class Spindexer{
+    public static final int SPINDEXER_MOTOR_ID = 0; //change
+    public static final int KICKER_MOTOR_ID = 0; //change
   }
 
-  public static class EndEffector {
-    public static final int LEFT_END_EFFECTOR_MOTOR_ID = 22; // Need to change
-    public static final int RIGHT_END_EFFECTOR_MOTOR_ID = 23; // Need to change
-    public static final int FIRST_LC_ID = 0;
-    public static final int SECOND_LC_ID = 1;
+  public static class Climber {
+    public static final int CLIMBER_MOTOR_ID = 20;
   }
 
-  public static class Elevator {
-    public static final int LEFT_ELEVATOR_MOTOR_ID = 24;
-    public static final int RIGHT_ELEVATOR_MOTOR_ID = 25;
-
-    public static final double ELEVATOR_ENCODER_OFFSET = 9.08837890625;
-  }
-
-  public static class Indexer {
-    public static final int INDEXER_MOTOR_ID = 37; // Need to change
-  }
-
-  public static class EndEffectorV2Subsystem {
-    public static final int SWIVEL_END_EFFECTOR_MOTOR_ID = 31;
-    public static final int BELT_END_EFFECTOR_MOTOR_ID = 32;
-    public static final int CAN_RANGE_ID = 50;
-    public static final int CAN_CODER_ID = 41;
-    public static final double HOME_POS = 0.04;
-    public static final double SHOOT_POS = 0.54; // tune
-    public static final double THRESHOLD = 0; // tune
-  }
-
-  public static class Intake {
-    public static final int PIVOT_INTAKE_MOTOR_ID = 30;
-    public static final int BELT_INTAKE_MOTOR_ID = 34;
-    public static final int INTAKE_CAN_CODER_ID = 40;
-    public static final double HOME_POS = 0.76;
-    public static final double DOWN_POS = 0.1; // tune
+  public static class IntakeBelt {
+    public static final int INTAKEBELT_MOTOR_ID = 0;
   }
 }
