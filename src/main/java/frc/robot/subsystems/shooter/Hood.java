@@ -38,7 +38,7 @@ public class Hood extends SubsystemBase {
     public static LoggedTunableNumber GOAL_POS = new LoggedTunableNumber("HOOD GOAL_POS", Constants.Shooter.Hood.HOOD_HOME_POS);
 
 
-  public Hood() {
+  public Hood() { //Deadass the exact same thing as the Turret (changes are in the parenthesis) - No Copy and Paste
     //1. Initalize CANCoder & Create CANcoderConfiguration (Discountinuty Point is 1)
 
 
