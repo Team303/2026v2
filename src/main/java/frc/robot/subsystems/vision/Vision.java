@@ -29,10 +29,8 @@ public class Vision extends SubsystemBase {
   private final VisionIO[] io;
   private final VisionIOInputsAutoLogged[] inputs;
   private final Alert[] disconnectedAlerts;
-  int i;
 
   public Vision(VisionConsumer consumer, VisionIO... io) {
-    i = 0;
     this.consumer = consumer;
     this.io = io;
 
@@ -63,7 +61,6 @@ public class Vision extends SubsystemBase {
   @Override
   public void periodic() {
     for (int i = 0; i < io.length; i++) {
-     // System.out.println("hello: " + io.length);
       io[i].updateInputs(inputs[i]);
       Logger.processInputs("Vision/Camera" + Integer.toString(i), inputs[i]);
     }
@@ -114,10 +111,7 @@ public class Vision extends SubsystemBase {
         if (rejectPose) {
           robotPosesRejected.add(observation.pose());
         } else {
-         // if (i == 0) {
-            robotPosesAccepted.add(observation.pose());
-          //  i++;
-        //  }
+          robotPosesAccepted.add(observation.pose());
         }
 
         // Skip if rejected

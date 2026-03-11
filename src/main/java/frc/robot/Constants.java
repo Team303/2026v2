@@ -79,13 +79,13 @@ public final class Constants {
     public static double maxAngularVelocityRadPerSec = 300;
 
     public static class XController {
-      public static double kP = 3;
+      public static double kP = 5;
       public static double kD = 0;
       public static double tolerance = 0.01; // ~.4 inches
     }
 
     public static class YController {
-      public static double kP = 3;
+      public static double kP = 5;
       public static double kD = 0;
       public static double tolerance = 0.01;
     }
@@ -120,20 +120,26 @@ public final class Constants {
       public static final int TURRET_THROUGHBORE_ID = 41; // NEED TO CHANGE
       public static final int TURRET_MOTOR_ID = 31; // NEED TO CHANGE
       public static final double TURRET_kS = 0.5;
-      public static final double TURRET_kP = 30;
+      public static final double TURRET_kP = 35;
       public static final double TURRET_kI = 0.0;
-      public static final double TURRET_kD = 0.00;
+      public static final double TURRET_kD = 0.5;
       public static final double TURRET_kA = 0.0;
 
       public static final double TURRET_maxV = 60;
-      public static final double TURRET_maxA = 30;
+      public static final double TURRET_maxA = 60;
+
+      public static final double OFFSET_POS_X = 0.1651;
+      public static final double OFFSET_POS_Y = 0.08255;
 
       public static final double TURRET_MOTOR_THROUGHBORE_RATIO = 2.8;
 
-      public static final double MAX_TURRET_ROTATION = 0.2;
+      public static final double MAX_TURRET_ROTATION = 0.23;
+      public static final double HARD_MAX_TURRET_ROTATION = 0.25;
 
       public static final double TURRET_HOME_POS = 0;
       public static final double TEST_HUB_POS = 0;
+
+      public static final double MAGNET_CANCODER_OFFSET = 0.056884765625;
     }
     // FLYWHEEL CONSTANTS --> Need to tune all PID 
     public static class Flywheel {
@@ -147,7 +153,7 @@ public final class Constants {
 
 
       public static final double FLYWHEEL_maxV = 90;
-      public static final double FLYWHEEL_maxA = 70;
+      public static final double FLYWHEEL_maxA = 30;
     }
     // HOOD CONSTANTS --> NEED TO TUNE ALL PID
     public static class Hood {

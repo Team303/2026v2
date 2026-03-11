@@ -26,13 +26,15 @@ public class GoToPosition extends Command {
 
     @Override
     public boolean isFinished() {
-        return Math.abs((double) climber.getRealPosition(climber.climbMotor)
-                            - (double) climber.position)
-                    < 0.05;
+        // return Math.abs((double) climber.getRealPosition(climber.climbMotor)
+        //                     - (double) climber.position)
+        //             < 0.05;
+
+        return false;
     }
 
     @Override
     public void end(boolean interrupted) {
-        climber.climbMotor.set(0);
+      //  climber.climbMotor.set(0);
     }
 }

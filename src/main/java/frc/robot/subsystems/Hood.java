@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import static frc.robot.RobotContainer.drive;
+
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
@@ -14,6 +16,8 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.LoggedTunableNumber;
@@ -24,6 +28,12 @@ public class Hood extends SubsystemBase{
 
     private final LoggedNetworkNumber motorPosition;
   private final LoggedNetworkNumber throughBorePosition;
+
+   private static final double BLUE_HUB_X = 4.6269;
+  private static final double BLUE_HUB_Y = 4.03;
+  private static final double RED_HUB_X = 11.91358;
+  private static final double RED_HUB_Y = 4.03;
+
 
   public static LoggedTunableNumber TESTING_kP =
       new LoggedTunableNumber("TURRET TESTING_kP", Constants.Shooter.Hood.HOOD_kP);
@@ -37,6 +47,11 @@ public class Hood extends SubsystemBase{
       new LoggedTunableNumber("TURRET TESTING_mmV", Constants.Shooter.Hood.HOOD_maxV);
   public static LoggedTunableNumber TESTING_mmA =
       new LoggedTunableNumber("TURRET TESTING_mmA", Constants.Shooter.Hood.HOOD_maxA);
+
+    public static LoggedTunableNumber HOOD_GOAL_POS = new LoggedTunableNumber("HOOD_GOAL_POS", 0.0);
+    public static LoggedTunableNumber HOOD_INTERP_POS = new LoggedTunableNumber("HOOD_INTERP_POS", 0.0);
+    
+    public static InterpolatingDoubleTreeMap hoodAngles;
 
 
     public Hood() {
@@ -79,7 +94,7 @@ public class Hood extends SubsystemBase{
         motorTalonFXConfigurator.apply(limitConfigs);
 
         var motorConfigs = new MotorOutputConfigs();
-        motorConfigs.NeutralMode = NeutralModeValue.Brake;
+        motorConfigs.NeutralMode = NeutralModeValue.Coast;
         motorConfigs.Inverted = InvertedValue.Clockwise_Positive; // Change on testing
         motorTalonFXConfigurator.apply(motorConfigs);
 
@@ -88,8 +103,26 @@ public class Hood extends SubsystemBase{
         throughBorePosition = new LoggedNetworkNumber("Hood Absolute Position", 0.0);
         motorPosition = new LoggedNetworkNumber("Hood Motor Position", 0.0);
 
-        
-    }  
+        hoodAngles = new InterpolatingDoubleTreeMap();
+        //Distance and Angle
+        hoodAngles.put(3.7338, 0.48);
+        hoodAngles.put(4.1148, 0.6);  
+        hoodAngles.put(2.4638, 0.2);  
+        hoodAngles.put(3.2766, 0.35);
+        hoodAngles.put(4.4196, 0.65);  
+        hoodAngles.put(4.9550, 1.0);
+        hoodAngles.put(1.6002, 0.0);
+        hoodAngles.put(2.3876, 0.1);
+
+    }   
+
+    // public double calculateHoodAngle(Pose2d robotPose) {
+    //    double robotPoseX = drive.getPose().getX();
+    //     double robotPoseY = robotPose.getY();
+    //     double distance = Math.sqrt(Math.pow((robotPoseX - BLUE_HUB_X), 2) + Math.pow((robotPoseY - BLUE_HUB_Y), 2));
+    //     System.out.println("robotpose: " + robotPose);
+    //     return hoodAngles.get(distance);
+    // }
     
     public void createNewConfig() {
     var hoodMotorConfig = new TalonFXConfiguration();
@@ -132,6 +165,7 @@ public class Hood extends SubsystemBase{
   public void periodic() {
     throughBorePosition.set(getThroughPosition());
     motorPosition.set(getMotorPosition());
+   // System.out.println("HOOD interp: " + hoodAngles.get(HOOD_INTERP_POS.getAsDouble()));
   //  System.out.println(hoodMotor.getPosition().getValueAsDouble());
   }
 

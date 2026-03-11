@@ -25,6 +25,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -62,6 +63,13 @@ public class Drive extends SubsystemBase {
   private final DoubleSubscriber tySubscriber;
   private final DoubleSubscriber taSubscriber;
 
+      private static final double BLUE_HUB_X = 4.6269;
+  private static final double BLUE_HUB_Y = 4.03;
+  private static final double RED_HUB_X = 11.91358;
+  private static final double RED_HUB_Y = 4.03;
+
+  
+
   //   private final LimelightIOInputsAutoLogged inputs = new LimelightIOInputsAutoLogged();
 
   private final String limelightName;
@@ -88,6 +96,10 @@ public class Drive extends SubsystemBase {
       new LoggedTunableNumber(
           "DriveToPoseStraight/thetaConstrollerP",
           Constants.DriveToPoseStraight.ThetaController.kP);
+
+  public static InterpolatingDoubleTreeMap hoodAngles;
+  public static InterpolatingDoubleTreeMap flywheelSpeeds;
+
 
   // PathPlanner config constants
   private static final double ROBOT_MASS_KG = 22.68;
@@ -133,6 +145,36 @@ public class Drive extends SubsystemBase {
       ModuleIO frModuleIO,
       ModuleIO blModuleIO,
       ModuleIO brModuleIO) {
+
+
+        hoodAngles = new InterpolatingDoubleTreeMap();
+        //Distance and Angle
+        hoodAngles.put(3.7338, 0.48);
+        hoodAngles.put(4.1148, 0.6);  
+        hoodAngles.put(2.4638, 0.2);  
+        hoodAngles.put(3.2766, 0.35);
+        hoodAngles.put(4.4196, 0.65);  
+        hoodAngles.put(4.9550, 1.0);
+        hoodAngles.put(1.6002, 0.0);
+        hoodAngles.put(2.3876, 0.1);
+
+
+        flywheelSpeeds = new InterpolatingDoubleTreeMap();
+        //Distance and Speed
+
+        flywheelSpeeds.put(3.7338, -39.75);
+        flywheelSpeeds.put(4.1148, -41.5);  
+        flywheelSpeeds.put(2.4638, -34.0);  
+        flywheelSpeeds.put(3.2766, -37.0);
+        flywheelSpeeds.put(4.4196, -43.5);  
+        flywheelSpeeds.put(4.9550, -48.75);
+        flywheelSpeeds.put(1.6002, -33.0);
+        flywheelSpeeds.put(2.3876, -36.0);
+
+
+
+
+
     this.gyroIO = gyroIO;
     modules[0] = new Module(flModuleIO, 0, TunerConstants.FrontLeft);
     modules[1] = new Module(frModuleIO, 1, TunerConstants.FrontRight);
@@ -297,6 +339,24 @@ public class Drive extends SubsystemBase {
       //  rotation //);
 //);
   }
+
+  public double calculateFlyWheelSpeed() {
+        double robotPoseX = getPose().getTranslation().getX();
+        double robotPoseY = getPose().getY();
+        double distance = Math.sqrt(Math.pow((robotPoseX - BLUE_HUB_X), 2) + Math.pow((robotPoseY - BLUE_HUB_Y), 2));
+
+        return flywheelSpeeds.get(distance);
+    }
+
+    public double calculateHoodAngle() {
+       double robotPoseX = getPose().getTranslation().getX();
+        double robotPoseY = getPose().getY();
+        double distance = Math.sqrt(Math.pow((robotPoseX - BLUE_HUB_X), 2) + Math.pow((robotPoseY - BLUE_HUB_Y), 2));
+        System.out.println("pose: " + getPose());
+        return hoodAngles.get(distance);
+
+        
+    }
 
   public boolean fuelInVision() {
     return (taSubscriber.get() > 0.5 && txSubscriber.get() != 0 && tySubscriber.get() != 0);

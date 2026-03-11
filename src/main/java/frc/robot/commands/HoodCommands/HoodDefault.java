@@ -9,12 +9,13 @@ public class HoodDefault extends Command{
     
     Hood hood;
 
-    public HoodDefault(Hood hood) {
+    public 
+    HoodDefault(Hood hood) {
         this.hood = hood;
         addRequirements(hood);
     }
 
    public void execute(){
-        hood.moveToPos(0);
+        hood.moveToPos(0.05);
     }
 }

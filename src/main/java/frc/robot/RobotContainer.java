@@ -26,6 +26,7 @@ import frc.robot.subsystems.Turret;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.DriveToPoseML;
 import frc.robot.commands.DriveToPoseStraight;
+import frc.robot.commands.ClimberCommands.ClimbDefault;
 import frc.robot.commands.ClimberCommands.GoToPosition;
 import frc.robot.commands.FlywheelCommands.TurnToSpeed;
 import frc.robot.commands.HoodCommands.HoodDefault;
@@ -34,7 +35,6 @@ import frc.robot.commands.IntakeBeltCommands.IntakeDefault;
 import frc.robot.commands.IntakeBeltCommands.IntakeDown;
 import frc.robot.commands.IntakeBeltCommands.IntakeStuff;
 import frc.robot.commands.SpindexerCommands.SpinDefault;
-import frc.robot.commands.SpindexerCommands.SpinForward;
 import frc.robot.commands.SpindexerCommands.spin2;
 import frc.robot.commands.TurretCommands.HomeTurret;
 import frc.robot.commands.TurretCommands.TurnToHub;
@@ -84,7 +84,7 @@ public class RobotContainer {
   //  public static IntakeBelt intakeBelt;
   // Controller
   public static CommandXboxController controller = new CommandXboxController(0);
-    public static CommandXboxController opController = new CommandXboxController(1);
+  public static CommandXboxController opController = new CommandXboxController(1);
 
 
   // Dashboard inputs
@@ -107,8 +107,9 @@ public class RobotContainer {
         vision =
             new Vision(
                 drive::addVisionMeasurement,
+               // new VisionIOLimelight("limelight-rturret", drive::getRotation),
                 new VisionIOLimelight("limelight-lturret", drive::getRotation),
-               new VisionIOLimelight("limelight-rturret", drive::getRotation));
+                new VisionIOLimelight("limelight-rturret", drive::getRotation));
         spindexer = new Spindexer();
         flywheel = new Flywheel();
         climber = new Climber();
@@ -197,27 +198,40 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    opController.back().toggleOnTrue(new RotateToPosition(hood, 1));
-    opController.start().toggleOnTrue(new ParallelCommandGroup(new SpinForward(spindexer, true)));
-    opController.leftStick().toggleOnTrue(new spin2(spindexer, true));
-    opController.leftBumper().toggleOnTrue(new SpinForward(spindexer, false));
-    opController.pov(0).toggleOnTrue(new IntakeStuff(intakeBelt, true));
-    opController.pov(180).toggleOnTrue(new IntakeStuff(intakeBelt, false));
-
     intakeBelt.setDefaultCommand(new IntakeDefault(intakeBelt));
     spindexer.setDefaultCommand(new SpinDefault(spindexer));
     hood.setDefaultCommand(new HoodDefault(hood));
+    climber.setDefaultCommand(new ClimbDefault(climber));
 
-    //opController.y().toggleOnTrue(new ParallelCommandGroup(new TurnToSpeed(-70)));
 
-    //opController.rightStick().toggleOnTrue(new TurnToSpeed(60));
-    //opController.leftStick().toggleOnTrue(new TurnToSpeed(30));
+    //opController.back().toggleOnTrue(new RotateToPosition(hood, 0.3));
+    opController.leftStick().toggleOnTrue(new spin2(spindexer, false));
+    opController.pov(0).toggleOnTrue(new IntakeStuff(intakeBelt, true));
+    opController.pov(180).toggleOnTrue(new IntakeStuff(intakeBelt, false));
+    //opController.pov(90).toggleOnTrue(new TurnToSpeed(flywheel, -44));
 
-    opController.povLeft().toggleOnTrue(new IntakeDown(intakeBelt));
+    //ACTUAL FLYWHEEL/HOOD COMMANDS
+    opController.leftBumper().toggleOnTrue(new RotateToPosition(hood));
+    opController.rightBumper().toggleOnTrue(new TurnToSpeed(flywheel));
+   
+    //TESTING FLYWHEEL/HOOD COMMANDS
+    //opController.leftBumper().toggleOnTrue(new RotateToPosition(drive, hood));
+    //opController.rightBumper().toggleOnTrue(new TurnToSpeed(flywheel, -39.75));    
+    opController.rightStick().toggleOnTrue(new spin2(spindexer, true));
+
+   
+   
+    // opController.pov(270).toggleOnTrue(new RotateToPosition(hood, 0.05));
+
+   opController.rightStick().toggleOnTrue(new GoToPosition(climber, 0.5));
+
     opController.a().onTrue(new HomeTurret(turret));
-    opController.x().onTrue(new TurnToPosition(turret, -0.2));
-    opController.b().onTrue(new TurnToPosition(turret, 0.2));
+    opController.x().onTrue(new TurnToPosition(turret, -0.19));
+    opController.b().onTrue(new TurnToPosition(turret, 0.19));
     opController.y().onTrue(new TurnToHub(turret));
+
+
+
 
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
@@ -244,7 +258,7 @@ public class RobotContainer {
         .start()
         .toggleOnTrue(
             new DriveToPoseStraight(
-                drive, new Pose2d(new Translation2d(1.9, 5.43), new Rotation2d(Units.degreesToRadians(-14.3)))));
+                drive, new Pose2d(new Translation2d(4.6269-3.7338, 4.03), new Rotation2d(Units.degreesToRadians(0)))));
     controller
         .rightTrigger()
         .toggleOnTrue(
@@ -255,7 +269,7 @@ public class RobotContainer {
         .back()
         .toggleOnTrue(
             new DriveToPoseStraight(
-                drive, new Pose2d(new Translation2d(1.9, 2.57), new Rotation2d(Units.degreesToRadians(14.3)))));
+                drive, new Pose2d(new Translation2d(2, 2), new Rotation2d(Units.degreesToRadians(0)))));
 
     // opController
     //     .start()
@@ -275,8 +289,8 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
-    controller.leftBumper().toggleOnTrue(new GoToPosition(climber, 10));
-    controller.leftBumper().toggleOnFalse(new GoToPosition(climber, 0));
+   // controller.leftBumper().toggleOnTrue(new GoToPosition(climber, 10));
+   // controller.leftBumper().toggleOnFalse(new GoToPosition(climber, 0));
 
    // controller.y().toggleOnTrue()
   }

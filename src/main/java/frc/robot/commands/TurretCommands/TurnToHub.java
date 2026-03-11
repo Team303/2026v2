@@ -27,13 +27,14 @@ public class TurnToHub extends Command {
   @Override
   public void execute() {
     goal = turret.getTurretTurnPos() / 360.0;
-    System.out.println("Rot goal: " + goal + " | Angle Goal: " + -turret.getTurretTurnPos());
-    //turret.moveToPos(goal);
+   // System.out.println("Rot goal: " + goal + " | Angle Goal: " + -turret.getTurretTurnPos());
+    turret.moveToPos(goal);
+    System.out.println("GOAL: " + goal + "; END: " + turret.getMotorPosition() + "; DIFF" + Math.abs(goal - turret.getMotorPosition()));
   }
 
   @Override
   public boolean isFinished() {
-    return Math.abs(turret.getMotorPosition()) > Constants.Shooter.Turret.MAX_TURRET_ROTATION;
+    return Math.abs(turret.getMotorPosition()) > Constants.Shooter.Turret.HARD_MAX_TURRET_ROTATION;
     //return false;//Math.abs(goal - turret.getMotorPosition()) < GOAL_THRESHOLD;
   }
 

@@ -1,29 +1,38 @@
 package frc.robot.commands.HoodCommands;
 
-import static frc.robot.Constants.Shooter.Hood.GOAL_POS;
+import static frc.robot.subsystems.Hood.HOOD_GOAL_POS;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Hood;
+import frc.robot.subsystems.drive.Drive;
+import static frc.robot.RobotContainer.drive;
 
 public class RotateToPosition extends Command {
-  private final double GOAL_THRESHOLD = 1 / 360.0;
-  private double goal; //Rotations
+  //private final double GOAL_THRESHOLD = 0 / 360.0;
+  private double goal;
   private Hood hood;
+ // private Drive drive;
 
-  public RotateToPosition(Hood hood, double goal) {
-    addRequirements(hood);
-    this.goal = goal;
+  public RotateToPosition(Hood hood) {
+    //addRequirements(drive, hood);
+    this.goal = 0;
+  //  this.drive = drive;
     this.hood = hood;
   }
 
   @Override
   public void initialize() {
+    goal = drive.calculateHoodAngle();
   }
 
   @Override
   public void execute() {
-    System.out.println("moving!");
+    //System.out.println("hood goal: " + goal);
     hood.moveToPos(goal);
+    goal = drive.calculateHoodAngle();
+    System.out.println(drive.getPose());
+
 
     //hood.hoodMotor.setVoltage(-0.9);
   }

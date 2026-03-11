@@ -13,6 +13,9 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -58,10 +61,13 @@ public class Turret extends SubsystemBase {
     CANcoderConfiguration cc_cfg = new CANcoderConfiguration();
     cc_cfg.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0.5;
     cc_cfg.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
-    cc_cfg.MagnetSensor.MagnetOffset = -0.491455078125;
+    cc_cfg.MagnetSensor.MagnetOffset = frc.robot.Constants.Shooter.Turret.MAGNET_CANCODER_OFFSET;
     throughBore.getConfigurator().apply(cc_cfg);
 
     turretMotor = new TalonFX(Constants.Shooter.Turret.TURRET_MOTOR_ID, "topside");
+
+    turretMotor.setPosition(throughBore.getAbsolutePosition().getValueAsDouble());
+
 
     applyMainConfigs();
 
@@ -77,7 +83,7 @@ public class Turret extends SubsystemBase {
     turretMotorConfig.Feedback.FeedbackRemoteSensorID = throughBore.getDeviceID();
     turretMotorConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
     turretMotorConfig.Feedback.SensorToMechanismRatio = 85.0 / 10.0;
-    turretMotorConfig.Feedback.FeedbackRotorOffset = 0.056884765625;
+    turretMotorConfig.Feedback.FeedbackRotorOffset = frc.robot.Constants.Shooter.Turret.MAGNET_CANCODER_OFFSET;
     //turretMotorConfig.Feedback.RotorToSensorRatio = Constants.Shooter.Turret.TURRET_MOTOR_THROUGHBORE_RATIO;
 
     var Slot0Configs = turretMotorConfig.Slot0;
@@ -113,7 +119,7 @@ public class Turret extends SubsystemBase {
     turretMotorConfig.Feedback.FeedbackRemoteSensorID = throughBore.getDeviceID();
     turretMotorConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
     turretMotorConfig.Feedback.SensorToMechanismRatio = 85.0 / 10.0;
-    turretMotorConfig.Feedback.FeedbackRotorOffset = 0.056884765625;
+    turretMotorConfig.Feedback.FeedbackRotorOffset = frc.robot.Constants.Shooter.Turret.MAGNET_CANCODER_OFFSET;
     //turretMotorConfig.Feedback.RotorToSensorRatio = Constants.Shooter.Turret.TURRET_MOTOR_THROUGHBORE_RATIO;
 
     var Slot0Configs = turretMotorConfig.Slot0;
@@ -175,7 +181,7 @@ public class Turret extends SubsystemBase {
 
     double finalRadiansRotate = radiansRotate + curPose.getRotation().getRadians();
     double finalAngleRotate = Math.toDegrees(finalRadiansRotate);
-    return finalAngleRotate;
+    return finalAngleRotate + 10;
   }
 
   private double getRedHubRotate(Pose2d curPose) {
@@ -186,7 +192,7 @@ public class Turret extends SubsystemBase {
     double finalRadiansRotate = radiansRotate - normalizeRedRot(curPose.getRotation().getRadians());
     double finalAngleRotate = Math.toDegrees(finalRadiansRotate);
 
-    return finalAngleRotate;
+    return finalAngleRotate; //NEED TO TEST AND FIGURE OUT IF ITS +- 45!!!
   }
 
   private double normalizeRedRot(double input) {
@@ -198,7 +204,8 @@ public class Turret extends SubsystemBase {
   }
 
   public double getTurretTurnPos() {
-    Pose2d currentPose = drive.getPose();
+    Pose2d currentPose = drive.getPose(); //NEED TO ADD OFFSET FOR TURRET POSITION!!!
+    currentPose.plus(new Transform2d(new Translation2d(Constants.Shooter.Turret.OFFSET_POS_X, Constants.Shooter.Turret.OFFSET_POS_Y).rotateBy(new Rotation2d(drive.getPose().getRotation().getRadians())), new Rotation2d(0)));
     if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) return getRedHubRotate(currentPose);
     return getBlueHubRotate(currentPose);
   }

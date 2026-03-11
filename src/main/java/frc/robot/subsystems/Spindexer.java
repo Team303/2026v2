@@ -13,11 +13,9 @@ import frc.robot.Constants;
 
 public class Spindexer extends SubsystemBase{
     public TalonFX spindexerMotor;
-    public TalonFX kickerMotor;
 
     public Spindexer(){
         spindexerMotor = new TalonFX(Constants.Spindexer.SPINDEXER_MOTOR_ID, "topside");
-        kickerMotor = new TalonFX(Constants.Spindexer.KICKER_MOTOR_ID, "topside");
 
 
 
@@ -36,18 +34,12 @@ public class Spindexer extends SubsystemBase{
     spindexerMotor.getConfigurator().apply(TalonFXConfiguration);
 
     var SpindexerMotorTalonFXConfigurator = spindexerMotor.getConfigurator();
-    var KickerMotorConfigurator = kickerMotor.getConfigurator();
 
     var limitConfigs = new CurrentLimitsConfigs();
     var spindexerMotorConfigs = new MotorOutputConfigs();
-    var kickerMotorConfigs = new MotorOutputConfigs();
 
     spindexerMotorConfigs.Inverted = InvertedValue.Clockwise_Positive;
     spindexerMotorConfigs.NeutralMode = NeutralModeValue.Brake;
-
-    kickerMotorConfigs.Inverted = InvertedValue.Clockwise_Positive;
-    kickerMotorConfigs.NeutralMode = NeutralModeValue.Brake;
-
 
     // enable stator current limit
     limitConfigs.StatorCurrentLimit = 120;
@@ -58,8 +50,6 @@ public class Spindexer extends SubsystemBase{
 
     SpindexerMotorTalonFXConfigurator.apply(spindexerMotorConfigs);
     SpindexerMotorTalonFXConfigurator.apply(limitConfigs);
-    KickerMotorConfigurator.apply(limitConfigs);
-    KickerMotorConfigurator.apply(kickerMotorConfigs);
 
 
    
