@@ -28,6 +28,7 @@ import frc.robot.commands.DriveToPoseML;
 import frc.robot.commands.DriveToPoseStraight;
 import frc.robot.commands.ClimberCommands.ClimbDefault;
 import frc.robot.commands.ClimberCommands.GoToPosition;
+import frc.robot.commands.FlywheelCommands.DefaultFlywheel;
 import frc.robot.commands.FlywheelCommands.TurnToSpeed;
 import frc.robot.commands.HoodCommands.HoodDefault;
 import frc.robot.commands.HoodCommands.RotateToPosition;
@@ -109,7 +110,8 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                // new VisionIOLimelight("limelight-rturret", drive::getRotation),
                 new VisionIOLimelight("limelight-lturret", drive::getRotation),
-                new VisionIOLimelight("limelight-rturret", drive::getRotation));
+                new VisionIOLimelight("limelight-rturret", drive::getRotation),
+                new VisionIOLimelight("limelight-front", drive::getRotation));
         spindexer = new Spindexer();
         flywheel = new Flywheel();
         climber = new Climber();
@@ -189,6 +191,12 @@ public class RobotContainer {
   public void configureNamedCommands() {
     NamedCommands.registerCommand("Climb L1", new GoToPosition(climber, 10));
     NamedCommands.registerCommand("Lower Climb", new GoToPosition(climber, 0));
+
+    NamedCommands.registerCommand("Stop", new ParallelCommandGroup(new DefaultFlywheel(flywheel), new HoodDefault(hood), new SpinDefault(spindexer)));
+
+    NamedCommands.registerCommand("Shoot", new ParallelCommandGroup(new TurnToSpeed(flywheel), new RotateToPosition(hood), new TurnToHub(turret), new spin2(spindexer, true)));
+
+    NamedCommands.registerCommand("simple", new TurnToSpeed(flywheel));
   }
 
   /**
@@ -225,10 +233,10 @@ public class RobotContainer {
 
    opController.rightStick().toggleOnTrue(new GoToPosition(climber, 0.5));
 
-    opController.a().onTrue(new HomeTurret(turret));
-    opController.x().onTrue(new TurnToPosition(turret, -0.19));
-    opController.b().onTrue(new TurnToPosition(turret, 0.19));
-    opController.y().onTrue(new TurnToHub(turret));
+    opController.a().toggleOnTrue(new HomeTurret(turret));
+    opController.x().toggleOnTrue(new TurnToPosition(turret, -0.19));
+    opController.b().toggleOnTrue(new TurnToPosition(turret, 0.19));
+    opController.y().toggleOnTrue(new TurnToHub(turret));
 
 
 

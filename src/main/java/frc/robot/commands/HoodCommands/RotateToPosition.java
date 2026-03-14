@@ -31,7 +31,7 @@ public class RotateToPosition extends Command {
     //System.out.println("hood goal: " + goal);
     hood.moveToPos(goal);
     goal = drive.calculateHoodAngle();
-    System.out.println(drive.getPose());
+    System.out.println("hood goal: " + goal);
 
 
     //hood.hoodMotor.setVoltage(-0.9);

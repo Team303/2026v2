@@ -71,6 +71,7 @@ public class Hood extends SubsystemBase{
         // hoodMotorConfig.Feedback.RotorToSensorRatio = 1.0; //NEED TO CHANGE
 
         var Slot0Configs = hoodMotorConfig.Slot0;
+        Slot0Configs.kG = Constants.Shooter.Hood.HOOD_kG;
         Slot0Configs.kS = Constants.Shooter.Hood.HOOD_kS;
         Slot0Configs.kP = Constants.Shooter.Hood.HOOD_kP;
         Slot0Configs.kI = Constants.Shooter.Hood.HOOD_kI;
@@ -87,14 +88,14 @@ public class Hood extends SubsystemBase{
         var motorTalonFXConfigurator = hoodMotor.getConfigurator();
 
         var limitConfigs = new CurrentLimitsConfigs();
-        limitConfigs.StatorCurrentLimit = 120;
-        limitConfigs.SupplyCurrentLimit = 120;
+        limitConfigs.StatorCurrentLimit = 60;
+        limitConfigs.SupplyCurrentLimit = 60;
         limitConfigs.StatorCurrentLimitEnable = true;
         limitConfigs.SupplyCurrentLimitEnable = true;
         motorTalonFXConfigurator.apply(limitConfigs);
 
         var motorConfigs = new MotorOutputConfigs();
-        motorConfigs.NeutralMode = NeutralModeValue.Coast;
+        motorConfigs.NeutralMode = NeutralModeValue.Brake;
         motorConfigs.Inverted = InvertedValue.Clockwise_Positive; // Change on testing
         motorTalonFXConfigurator.apply(motorConfigs);
 
@@ -133,7 +134,7 @@ public class Hood extends SubsystemBase{
     hoodMotorConfig.Feedback.RotorToSensorRatio = 1.0; //NEED TO CHANGE
 
     var Slot0Configs = hoodMotorConfig.Slot0;
-    Slot0Configs.kS = Constants.Shooter.Hood.HOOD_kS;
+    //Slot0Configs.kS = Constants.Shooter.Hood.HOOD_kS;
     Slot0Configs.kP = Constants.Shooter.Hood.HOOD_kP;
     Slot0Configs.kI = Constants.Shooter.Hood.HOOD_kI;
     Slot0Configs.kD = Constants.Shooter.Hood.HOOD_kD;

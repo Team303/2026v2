@@ -19,10 +19,10 @@ public class IntakeStuff extends Command {
     }
     public void execute(){
         if (forward){
-            intakeBelt.beltMotor.set(-0.75);
+            intakeBelt.beltMotor.set(-0.7);
         }
         else {
-            intakeBelt.beltMotor.set(0.75);
+            intakeBelt.beltMotor.set(0.7);
         }
         
     }

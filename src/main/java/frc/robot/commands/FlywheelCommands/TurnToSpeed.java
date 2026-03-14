@@ -22,7 +22,7 @@ public class TurnToSpeed extends Command {
   @Override
   public void initialize() {
     goal_speed = drive.calculateFlyWheelSpeed();
-    goal_speed -= 1;
+    goal_speed -= 2;
   }
 
   @Override

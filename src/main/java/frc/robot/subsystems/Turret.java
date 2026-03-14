@@ -59,15 +59,14 @@ public class Turret extends SubsystemBase {
   public Turret() {
     throughBore = new CANcoder(Constants.Shooter.Turret.TURRET_THROUGHBORE_ID, "topside");
     CANcoderConfiguration cc_cfg = new CANcoderConfiguration();
-    cc_cfg.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0.5;
+    cc_cfg.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 1;
     cc_cfg.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
-    cc_cfg.MagnetSensor.MagnetOffset = frc.robot.Constants.Shooter.Turret.MAGNET_CANCODER_OFFSET;
+    cc_cfg.MagnetSensor.MagnetOffset = -0.5415625;
     throughBore.getConfigurator().apply(cc_cfg);
 
     turretMotor = new TalonFX(Constants.Shooter.Turret.TURRET_MOTOR_ID, "topside");
 
     turretMotor.setPosition(throughBore.getAbsolutePosition().getValueAsDouble());
-
 
     applyMainConfigs();
 
@@ -77,14 +76,25 @@ public class Turret extends SubsystemBase {
     wallahi = 0;
   }
 
+  public void printRAWPositionForOffset() {
+    CANcoderConfiguration tempConfiguration = new CANcoderConfiguration();
+    tempConfiguration.MagnetSensor.MagnetOffset = 0;
+    tempConfiguration.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0;
+    throughBore.getConfigurator().apply(tempConfiguration);
+
+    throughBore.getAbsolutePosition().waitForUpdate(0.1);
+    double rawPosition = throughBore.getAbsolutePosition().getValueAsDouble();
+
+    System.out.println(rawPosition);
+  }
+
   private void applyMainConfigs() {
     var turretMotorConfig = new TalonFXConfiguration();
 
-    turretMotorConfig.Feedback.FeedbackRemoteSensorID = throughBore.getDeviceID();
     turretMotorConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
-    turretMotorConfig.Feedback.SensorToMechanismRatio = 85.0 / 10.0;
-    turretMotorConfig.Feedback.FeedbackRotorOffset = frc.robot.Constants.Shooter.Turret.MAGNET_CANCODER_OFFSET;
-    //turretMotorConfig.Feedback.RotorToSensorRatio = Constants.Shooter.Turret.TURRET_MOTOR_THROUGHBORE_RATIO;
+    turretMotorConfig.Feedback.FeedbackRemoteSensorID = throughBore.getDeviceID();
+    turretMotorConfig.Feedback.SensorToMechanismRatio = 8.5;
+    //turretMotorConfig.Feedback.RotorToSensorRatio = 8.5;
 
     var Slot0Configs = turretMotorConfig.Slot0;
     Slot0Configs.kS = Constants.Shooter.Turret.TURRET_kS;
@@ -101,44 +111,8 @@ public class Turret extends SubsystemBase {
     var motorTalonFXConfigurator = turretMotor.getConfigurator();
 
     var limitConfigs = new CurrentLimitsConfigs();
-    limitConfigs.StatorCurrentLimit = 120;
-    limitConfigs.SupplyCurrentLimit = 120;
-    limitConfigs.StatorCurrentLimitEnable = true;
-    limitConfigs.SupplyCurrentLimitEnable = true;
-    motorTalonFXConfigurator.apply(limitConfigs);
-
-    var motorConfigs = new MotorOutputConfigs();
-    motorConfigs.NeutralMode = NeutralModeValue.Brake;
-    motorConfigs.Inverted = InvertedValue.Clockwise_Positive; // Change on testing
-    motorTalonFXConfigurator.apply(motorConfigs);
-  }
-
-  private void applySafeConfigs() {
-    var turretMotorConfig = new TalonFXConfiguration();
-
-    turretMotorConfig.Feedback.FeedbackRemoteSensorID = throughBore.getDeviceID();
-    turretMotorConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
-    turretMotorConfig.Feedback.SensorToMechanismRatio = 85.0 / 10.0;
-    turretMotorConfig.Feedback.FeedbackRotorOffset = frc.robot.Constants.Shooter.Turret.MAGNET_CANCODER_OFFSET;
-    //turretMotorConfig.Feedback.RotorToSensorRatio = Constants.Shooter.Turret.TURRET_MOTOR_THROUGHBORE_RATIO;
-
-    var Slot0Configs = turretMotorConfig.Slot0;
-    Slot0Configs.kS = Constants.Shooter.Turret.TURRET_kS;
-    Slot0Configs.kP = Constants.Shooter.Turret.TURRET_kP;
-    Slot0Configs.kI = Constants.Shooter.Turret.TURRET_kI;
-    Slot0Configs.kD = Constants.Shooter.Turret.TURRET_kD;
-    Slot0Configs.kA = Constants.Shooter.Turret.TURRET_kA;
-
-    var motionMagicConfigs = turretMotorConfig.MotionMagic;
-    motionMagicConfigs.MotionMagicCruiseVelocity = Constants.Shooter.Turret.TURRET_maxV / 4;
-    motionMagicConfigs.MotionMagicAcceleration = Constants.Shooter.Turret.TURRET_maxA / 8;
-    turretMotor.getConfigurator().apply(turretMotorConfig);
-
-    var motorTalonFXConfigurator = turretMotor.getConfigurator();
-
-    var limitConfigs = new CurrentLimitsConfigs();
-    limitConfigs.StatorCurrentLimit = 40;
-    limitConfigs.SupplyCurrentLimit = 40;
+    limitConfigs.StatorCurrentLimit = 60;
+    limitConfigs.SupplyCurrentLimit = 60;
     limitConfigs.StatorCurrentLimitEnable = true;
     limitConfigs.SupplyCurrentLimitEnable = true;
     motorTalonFXConfigurator.apply(limitConfigs);
@@ -159,14 +133,19 @@ public class Turret extends SubsystemBase {
 
   //USE drive.getPose() to get
   public void moveToPos(double pos) {
-    if (Math.abs(pos) < Constants.Shooter.Turret.MAX_TURRET_ROTATION) { //Expand to 0.25 later
+    if (pos > 0.0 && pos <= Constants.Shooter.Turret.MAX_TURRET_ROTATION) { //Expand to 0.25 later
       applyMainConfigs();
       final MotionMagicVoltage mmRequest = new MotionMagicVoltage(pos);
       turretMotor.setControl(mmRequest.withPosition(pos));
     } else {
-      applySafeConfigs();
-      final MotionMagicVoltage mmRequest = new MotionMagicVoltage(pos);
-      turretMotor.setControl(mmRequest.withPosition(0)); //Set to home to reset for a bit
+      double newPos = 0.0;
+      if (pos - 0.23 > 0) {
+        newPos = Constants.Shooter.Turret.MAX_TURRET_ROTATION;
+      } else {
+        newPos = 0.0;
+      }
+      final MotionMagicVoltage mmRequest = new MotionMagicVoltage(newPos);
+      turretMotor.setControl(mmRequest.withPosition(newPos)); //Set to home to reset for a bit
     }
   }
 
@@ -181,7 +160,7 @@ public class Turret extends SubsystemBase {
 
     double finalRadiansRotate = radiansRotate + curPose.getRotation().getRadians();
     double finalAngleRotate = Math.toDegrees(finalRadiansRotate);
-    return finalAngleRotate + 10;
+    return (finalAngleRotate + 135);// * (0.46/0.5);
   }
 
   private double getRedHubRotate(Pose2d curPose) {
@@ -205,20 +184,26 @@ public class Turret extends SubsystemBase {
 
   public double getTurretTurnPos() {
     Pose2d currentPose = drive.getPose(); //NEED TO ADD OFFSET FOR TURRET POSITION!!!
-    currentPose.plus(new Transform2d(new Translation2d(Constants.Shooter.Turret.OFFSET_POS_X, Constants.Shooter.Turret.OFFSET_POS_Y).rotateBy(new Rotation2d(drive.getPose().getRotation().getRadians())), new Rotation2d(0)));
+    currentPose = currentPose.plus(new Transform2d(new Translation2d(Constants.Shooter.Turret.OFFSET_POS_X, Constants.Shooter.Turret.OFFSET_POS_Y).rotateBy(new Rotation2d(drive.getPose().getRotation().getRadians())), new Rotation2d(0)));
     if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) return getRedHubRotate(currentPose);
     return getBlueHubRotate(currentPose);
   }
 
   @Override
   public void periodic() {
-    System.out.println("GOAL: " + Constants.Shooter.Turret.TURRET_HOME_POS + "; END: " + getMotorPosition() + "; DIFF" + Math.abs(Constants.Shooter.Turret.TURRET_HOME_POS - getMotorPosition()));
+    //printRAWPositionForOffset();
+    //System.out.println("GOAL: " + Constants.Shooter.Turret.TURRET_HOME_POS + "; END: " + getMotorPosition() + "; DIFF" + Math.abs(Constants.Shooter.Turret.TURRET_HOME_POS - getMotorPosition()));
     throughBorePosition.set(getThroughPosition());
     motorPosition.set(getMotorPosition());
     wallahi++;
     if (wallahi % 100 == 0) {
         getTurretTurnPos();  
     } else if (wallahi > 2_000_000) wallahi = 0;
+
+
+
+
+    System.out.println("throughbore: " + throughBore.getAbsolutePosition().getValueAsDouble());
   }
 
   

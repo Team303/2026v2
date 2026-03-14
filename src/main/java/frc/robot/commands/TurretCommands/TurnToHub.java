@@ -26,7 +26,9 @@ public class TurnToHub extends Command {
 
   @Override
   public void execute() {
+    System.out.println("GOALLLLLL: " + turret.getTurretTurnPos());
     goal = turret.getTurretTurnPos() / 360.0;
+
    // System.out.println("Rot goal: " + goal + " | Angle Goal: " + -turret.getTurretTurnPos());
     turret.moveToPos(goal);
     System.out.println("GOAL: " + goal + "; END: " + turret.getMotorPosition() + "; DIFF" + Math.abs(goal - turret.getMotorPosition()));
