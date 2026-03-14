@@ -17,9 +17,11 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.LoggedTunableNumber;
+import frc.robot.subsystems.drive.Drive;
 
 import static frc.robot.RobotContainer.drive;
 // import static frc.robot.RobotContainer.tempDrivebase;
@@ -50,6 +52,18 @@ public class Turret extends SubsystemBase {
   public static LoggedTunableNumber GOAL_POS = new LoggedTunableNumber("TURRET GOAL_POS", Constants.Shooter.Turret.TEST_HUB_POS);
 
   private static int wallahi;
+
+  // --- Shoot-on-the-move: field-relative velocity estimation via pose differencing ---
+  private static final double VEL_ALPHA = 0.25; // EMA smoothing factor (0=frozen, 1=raw)
+  private Pose2d prevPose = null;
+  private double prevTimeSeconds = 0.0;
+  private double smoothedVx = 0.0; // field-relative, m/s
+  private double smoothedVy = 0.0; // field-relative, m/s
+
+  // Cached shoot-on-the-move values, refreshed every periodic() cycle
+  private Translation2d cachedVirtualTarget = null;
+  private double cachedVirtualTargetDistance = 0.0;
+  private double cachedVelocityTowardHub = 0.0;
 
   private static final double BLUE_HUB_X = 4.6269;
   private static final double BLUE_HUB_Y = 4.03;
@@ -153,9 +167,51 @@ public class Turret extends SubsystemBase {
     turretMotor.setVoltage(0);
   }
 
-  private double getBlueHubRotate(Pose2d curPose) {
-    double xDIFF = BLUE_HUB_X - curPose.getX();
-    double yDIFF = BLUE_HUB_Y - curPose.getY();
+  /**
+   * Computes the virtual hub target that accounts for robot velocity so a ball
+   * shot while moving still lands in the hub.
+   *
+   * <p>Algorithm (iterated twice for accuracy):
+   * <ol>
+   *   <li>Estimate flight time: {@code t = dist / ballSpeed}
+   *   <li>Shift hub by robot velocity: {@code virtualTarget = hub - v * t}
+   * </ol>
+   *
+   * @param robotPose current (offset-corrected) robot pose
+   * @return field-relative Translation2d of the virtual target
+   */
+  private Translation2d getVirtualTarget(Pose2d robotPose) {
+    boolean isBlue = DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue)
+        == DriverStation.Alliance.Blue;
+    double hubX = isBlue ? BLUE_HUB_X : RED_HUB_X;
+    double hubY = isBlue ? BLUE_HUB_Y : RED_HUB_Y;
+
+    double vtX = hubX;
+    double vtY = hubY;
+
+    for (int iter = 0; iter < 2; iter++) {
+      double dx = vtX - robotPose.getX();
+      double dy = vtY - robotPose.getY();
+      double dist = Math.hypot(dx, dy);
+      if (dist < 0.01) break;
+
+      // Convert interpolated flywheel RPS → ball surface speed (m/s)
+      double flywheelRPS = Math.abs(Drive.flywheelSpeeds.get(dist));
+      double ballSpeedMS = flywheelRPS * 2.0 * Math.PI * Constants.Shooter.Flywheel.FLYWHEEL_WHEEL_RADIUS_METERS;
+      if (ballSpeedMS < 0.01) break;
+
+      double t = dist / ballSpeedMS;
+      vtX = hubX - smoothedVx * t;
+      vtY = hubY - smoothedVy * t;
+    }
+
+    return new Translation2d(vtX, vtY);
+  }
+
+  // Parameterized to aim at any field-relative target point (virtual or real hub).
+  private double getBlueHubRotate(Pose2d curPose, Translation2d target) {
+    double xDIFF = target.getX() - curPose.getX();
+    double yDIFF = target.getY() - curPose.getY();
     double radiansRotate = -Math.atan(yDIFF / xDIFF);
 
     double finalRadiansRotate = radiansRotate + curPose.getRotation().getRadians();
@@ -163,11 +219,11 @@ public class Turret extends SubsystemBase {
     return (finalAngleRotate + 135);// * (0.46/0.5);
   }
 
-  private double getRedHubRotate(Pose2d curPose) {
-    double xDIFF = RED_HUB_X - curPose.getX();
-    double yDIFF = RED_HUB_Y - curPose.getY(); 
+  private double getRedHubRotate(Pose2d curPose, Translation2d target) {
+    double xDIFF = target.getX() - curPose.getX();
+    double yDIFF = target.getY() - curPose.getY();
     double radiansRotate = -Math.atan(yDIFF / xDIFF);
-    
+
     double finalRadiansRotate = radiansRotate - normalizeRedRot(curPose.getRotation().getRadians());
     double finalAngleRotate = Math.toDegrees(finalRadiansRotate);
 
@@ -184,9 +240,39 @@ public class Turret extends SubsystemBase {
 
   public double getTurretTurnPos() {
     Pose2d currentPose = drive.getPose(); //NEED TO ADD OFFSET FOR TURRET POSITION!!!
-    currentPose = currentPose.plus(new Transform2d(new Translation2d(Constants.Shooter.Turret.OFFSET_POS_X, Constants.Shooter.Turret.OFFSET_POS_Y).rotateBy(new Rotation2d(drive.getPose().getRotation().getRadians())), new Rotation2d(0)));
-    if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) return getRedHubRotate(currentPose);
-    return getBlueHubRotate(currentPose);
+    currentPose = currentPose.plus(new Transform2d(
+        new Translation2d(Constants.Shooter.Turret.OFFSET_POS_X, Constants.Shooter.Turret.OFFSET_POS_Y)
+            .rotateBy(new Rotation2d(drive.getPose().getRotation().getRadians())),
+        new Rotation2d(0)));
+
+    // Use the cached virtual target (updated each periodic). Fall back to real hub if not yet set.
+    Translation2d target = cachedVirtualTarget;
+    if (target == null) {
+      boolean isBlue = DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue)
+          == DriverStation.Alliance.Blue;
+      target = new Translation2d(isBlue ? BLUE_HUB_X : RED_HUB_X, isBlue ? BLUE_HUB_Y : RED_HUB_Y);
+    }
+
+    if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) return getRedHubRotate(currentPose, target);
+    return getBlueHubRotate(currentPose, target);
+  }
+
+  /** Returns the distance from the turret origin to the cached virtual target (meters). */
+  public double getVirtualTargetDistance() {
+    return cachedVirtualTargetDistance;
+  }
+
+  /**
+   * Returns the robot's field-relative velocity projected onto the turret→hub vector (m/s).
+   * Positive = moving toward the hub. Used to correct flywheel speed.
+   */
+  public double getVelocityComponentTowardHub() {
+    return cachedVelocityTowardHub;
+  }
+
+  /** Returns the last computed virtual target in field coordinates. */
+  public Translation2d getLastVirtualTarget() {
+    return cachedVirtualTarget;
   }
 
   @Override
@@ -195,13 +281,45 @@ public class Turret extends SubsystemBase {
     //System.out.println("GOAL: " + Constants.Shooter.Turret.TURRET_HOME_POS + "; END: " + getMotorPosition() + "; DIFF" + Math.abs(Constants.Shooter.Turret.TURRET_HOME_POS - getMotorPosition()));
     throughBorePosition.set(getThroughPosition());
     motorPosition.set(getMotorPosition());
+
+    // --- Shoot-on-the-move: estimate field-relative velocity via pose differencing ---
+    double now = Timer.getFPGATimestamp();
+    Pose2d currentPose = drive.getPose();
+    if (prevPose != null) {
+      double dt = now - prevTimeSeconds;
+      if (dt > 0.005) { // guard against duplicate calls / near-zero dt
+        double rawVx = (currentPose.getX() - prevPose.getX()) / dt;
+        double rawVy = (currentPose.getY() - prevPose.getY()) / dt;
+        smoothedVx = VEL_ALPHA * rawVx + (1.0 - VEL_ALPHA) * smoothedVx;
+        smoothedVy = VEL_ALPHA * rawVy + (1.0 - VEL_ALPHA) * smoothedVy;
+      }
+    }
+    prevPose = currentPose;
+    prevTimeSeconds = now;
+
+    // Compute offset-corrected turret origin pose (same as getTurretTurnPos)
+    Pose2d turretPose = currentPose.plus(new Transform2d(
+        new Translation2d(Constants.Shooter.Turret.OFFSET_POS_X, Constants.Shooter.Turret.OFFSET_POS_Y)
+            .rotateBy(new Rotation2d(currentPose.getRotation().getRadians())),
+        new Rotation2d(0)));
+
+    // Cache virtual target and derived values for use by commands this cycle
+    cachedVirtualTarget = getVirtualTarget(turretPose);
+    double dx = cachedVirtualTarget.getX() - turretPose.getX();
+    double dy = cachedVirtualTarget.getY() - turretPose.getY();
+    cachedVirtualTargetDistance = Math.hypot(dx, dy);
+
+    // Project robot velocity onto the turret→virtual-target unit vector
+    if (cachedVirtualTargetDistance > 0.01) {
+      cachedVelocityTowardHub = (smoothedVx * dx + smoothedVy * dy) / cachedVirtualTargetDistance;
+    } else {
+      cachedVelocityTowardHub = 0.0;
+    }
+
     wallahi++;
     if (wallahi % 100 == 0) {
-        getTurretTurnPos();  
+        getTurretTurnPos();
     } else if (wallahi > 2_000_000) wallahi = 0;
-
-
-
 
     System.out.println("throughbore: " + throughBore.getAbsolutePosition().getValueAsDouble());
   }

@@ -191,6 +191,27 @@ public class Flywheel extends SubsystemBase {
         kickerMotor.setVoltage(0);
     }
 
+    /**
+     * Returns the corrected flywheel speed (RPS) for shooting on the move.
+     *
+     * <p>Base speed comes from the interpolation table keyed on distance to the virtual target.
+     * A velocity correction term is added to account for the robot's motion component along the
+     * shot vector: {@code delta = vComponent / (2π × wheelRadius)}.
+     *
+     * @param distanceToVirtualTarget meters from turret origin to the virtual target
+     * @param robotVelocityComponent  robot's field-relative speed projected onto the
+     *                                turret→hub unit vector (m/s, positive = toward hub)
+     * @return corrected speed in RPS (negative convention matches the table)
+     */
+    public double getShootOnMoveSpeed(double distanceToVirtualTarget, double robotVelocityComponent) {
+        double baseSpeed = flywheelSpeeds.get(distanceToVirtualTarget);
+        // Convert linear velocity correction to RPS. Moving toward hub → ball needs less spin;
+        // the sign works out because baseSpeed is negative (counter-clockwise convention).
+        double deltaSpeed = robotVelocityComponent
+            / (2.0 * Math.PI * Constants.Shooter.Flywheel.FLYWHEEL_WHEEL_RADIUS_METERS);
+        return baseSpeed + deltaSpeed;
+    }
+
     
 
     @Override

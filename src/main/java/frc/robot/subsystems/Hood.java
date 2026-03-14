@@ -153,6 +153,18 @@ public class Hood extends SubsystemBase{
     return hoodMotor.getPosition().getValueAsDouble();
   }
 
+    /**
+     * Returns the interpolated hood angle (rotations) for a given distance to the
+     * virtual target. Wraps the existing {@code hoodAngles} map so callers don't
+     * need to reference it directly.
+     *
+     * @param distanceToVirtualTarget meters from turret origin to the virtual target
+     * @return hood position in rotations
+     */
+    public double getShootOnMoveAngle(double distanceToVirtualTarget) {
+        return hoodAngles.get(distanceToVirtualTarget);
+    }
+
     public void moveToPos(double pos) {
         final MotionMagicVoltage mmRequest = new MotionMagicVoltage(pos);
         hoodMotor.setControl(mmRequest.withPosition(pos));
