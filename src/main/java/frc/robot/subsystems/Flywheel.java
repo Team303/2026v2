@@ -218,7 +218,7 @@ public class Flywheel extends SubsystemBase {
     public void periodic() {
        leftMotorSpeed.set(getLeftMotorSpeed());
         rightMotorSpeed.set(getRightMotorSpeed());
-        System.out.println("FLYWHEEL: " + flywheelSpeeds.get(FLYWHEEL_INTERP_GOAL.getAsDouble()));
+        //("FLYWHEEL: " + flywheelSpeeds.get(FLYWHEEL_INTERP_GOAL.getAsDouble()));
         //System.out.println("kicker speed: " + getKickerMotorSpeed());
         // System.out.println(getLeftMotorSpeed());
         // System.out.println(getRightMotorSpeed());

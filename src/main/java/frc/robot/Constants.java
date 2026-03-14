@@ -156,7 +156,7 @@ public final class Constants {
       public static final double FLYWHEEL_maxA = 9999;
 
       /** Radius of the flywheel contact wheel in meters. Used for RPS → m/s conversion. */
-      public static final double FLYWHEEL_WHEEL_RADIUS_METERS = 0.0508; // ~2 inches; tune as needed
+      public static final double FLYWHEEL_WHEEL_RADIUS_METERS = Units.inchesToMeters(2); // ~2 inches; tune as needed
     }
     // HOOD CONSTANTS --> NEED TO TUNE ALL PID
     public static class Hood {

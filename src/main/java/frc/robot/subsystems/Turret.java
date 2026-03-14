@@ -16,8 +16,8 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.LoggedTunableNumber;
@@ -53,12 +53,7 @@ public class Turret extends SubsystemBase {
 
   private static int wallahi;
 
-  // --- Shoot-on-the-move: field-relative velocity estimation via pose differencing ---
-  private static final double VEL_ALPHA = 0.25; // EMA smoothing factor (0=frozen, 1=raw)
-  private Pose2d prevPose = null;
-  private double prevTimeSeconds = 0.0;
-  private double smoothedVx = 0.0; // field-relative, m/s
-  private double smoothedVy = 0.0; // field-relative, m/s
+  // Field-relative velocity is sourced directly from the Pigeon-backed drive chassis speeds
 
   // Cached shoot-on-the-move values, refreshed every periodic() cycle
   private Translation2d cachedVirtualTarget = null;
@@ -180,7 +175,7 @@ public class Turret extends SubsystemBase {
    * @param robotPose current (offset-corrected) robot pose
    * @return field-relative Translation2d of the virtual target
    */
-  private Translation2d getVirtualTarget(Pose2d robotPose) {
+  private Translation2d getVirtualTarget(Pose2d robotPose, double vx, double vy) {
     boolean isBlue = DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue)
         == DriverStation.Alliance.Blue;
     double hubX = isBlue ? BLUE_HUB_X : RED_HUB_X;
@@ -201,8 +196,8 @@ public class Turret extends SubsystemBase {
       if (ballSpeedMS < 0.01) break;
 
       double t = dist / ballSpeedMS;
-      vtX = hubX - smoothedVx * t;
-      vtY = hubY - smoothedVy * t;
+      vtX = hubX - vx * t;
+      vtY = hubY - vy * t;
     }
 
     return new Translation2d(vtX, vtY);
@@ -282,20 +277,12 @@ public class Turret extends SubsystemBase {
     throughBorePosition.set(getThroughPosition());
     motorPosition.set(getMotorPosition());
 
-    // --- Shoot-on-the-move: estimate field-relative velocity via pose differencing ---
-    double now = Timer.getFPGATimestamp();
+    // --- Shoot-on-the-move: get field-relative velocity from Pigeon-backed drive ---
+    ChassisSpeeds fieldSpeeds = drive.getFieldRelativeSpeeds();
+    double vx = fieldSpeeds.vxMetersPerSecond;
+    double vy = fieldSpeeds.vyMetersPerSecond;
+
     Pose2d currentPose = drive.getPose();
-    if (prevPose != null) {
-      double dt = now - prevTimeSeconds;
-      if (dt > 0.005) { // guard against duplicate calls / near-zero dt
-        double rawVx = (currentPose.getX() - prevPose.getX()) / dt;
-        double rawVy = (currentPose.getY() - prevPose.getY()) / dt;
-        smoothedVx = VEL_ALPHA * rawVx + (1.0 - VEL_ALPHA) * smoothedVx;
-        smoothedVy = VEL_ALPHA * rawVy + (1.0 - VEL_ALPHA) * smoothedVy;
-      }
-    }
-    prevPose = currentPose;
-    prevTimeSeconds = now;
 
     // Compute offset-corrected turret origin pose (same as getTurretTurnPos)
     Pose2d turretPose = currentPose.plus(new Transform2d(
@@ -304,14 +291,14 @@ public class Turret extends SubsystemBase {
         new Rotation2d(0)));
 
     // Cache virtual target and derived values for use by commands this cycle
-    cachedVirtualTarget = getVirtualTarget(turretPose);
+    cachedVirtualTarget = getVirtualTarget(turretPose, vx, vy);
     double dx = cachedVirtualTarget.getX() - turretPose.getX();
     double dy = cachedVirtualTarget.getY() - turretPose.getY();
     cachedVirtualTargetDistance = Math.hypot(dx, dy);
 
     // Project robot velocity onto the turret→virtual-target unit vector
     if (cachedVirtualTargetDistance > 0.01) {
-      cachedVelocityTowardHub = (smoothedVx * dx + smoothedVy * dy) / cachedVirtualTargetDistance;
+      cachedVelocityTowardHub = (vx * dx + vy * dy) / cachedVirtualTargetDistance;
     } else {
       cachedVelocityTowardHub = 0.0;
     }
@@ -321,7 +308,7 @@ public class Turret extends SubsystemBase {
         getTurretTurnPos();
     } else if (wallahi > 2_000_000) wallahi = 0;
 
-    System.out.println("throughbore: " + throughBore.getAbsolutePosition().getValueAsDouble());
+    //System.out.println("throughbore: " + throughBore.getAbsolutePosition().getValueAsDouble());
   }
 
   
