@@ -1,12 +1,18 @@
 package frc.robot.commands.TurretCommands;
+
+
+import static frc.robot.RobotContainer.turret;
+
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants;
 import frc.robot.subsystems.Turret;
 
-public class TurnToHub extends Command {
-  private double goal;
+public class TurnToHubAuto extends Command {
+  private final double GOAL_THRESHOLD = 0.0 / 360.0;
+  private double goal; //Rotations
   Turret turret;
 
-  public TurnToHub(Turret turret) {
+  public TurnToHubAuto(Turret turret) {
     addRequirements(turret);
     this.turret = turret;
   }
@@ -30,7 +36,7 @@ public class TurnToHub extends Command {
 
   @Override
   public boolean isFinished() {
-    return false;//Math.abs(turret.getMotorPosition()) > Constants.Shooter.Turret.HARD_MAX_TURRET_ROTATION;
+    return Math.abs(turret.getMotorPosition()) > Constants.Shooter.Turret.HARD_MAX_TURRET_ROTATION;
     //return false;//Math.abs(goal - turret.getMotorPosition()) < GOAL_THRESHOLD;
   }
 

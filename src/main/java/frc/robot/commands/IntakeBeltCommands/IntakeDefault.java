@@ -16,5 +16,6 @@ public class IntakeDefault extends Command{
 
    public void execute(){
         take.beltMotor.set(0);
+        take.takeMotor.set(0);
     }
 }

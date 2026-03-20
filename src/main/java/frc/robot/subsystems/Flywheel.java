@@ -6,11 +6,13 @@ import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.MotionMagicVelocityTorqueCurrentFOC;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
@@ -28,6 +30,8 @@ public class Flywheel extends SubsystemBase {
 
     private final LoggedNetworkNumber leftMotorSpeed;
     private final LoggedNetworkNumber rightMotorSpeed;
+
+    public final LoggedNetworkNumber flywheelInterpNumber;
 
     private static final double BLUE_HUB_X = 4.6269;
   private static final double BLUE_HUB_Y = 4.03;
@@ -66,7 +70,7 @@ public class Flywheel extends SubsystemBase {
 
         var Slot1Configs = flywheelMotorsConfig.Slot1;
         Slot1Configs.kS = 1;
-        Slot1Configs.kP = 0.6;
+        Slot1Configs.kP = 1;
         Slot1Configs.kI = 0.0;
         Slot1Configs.kD = 0.0;
         Slot1Configs.kV = 0.13;
@@ -111,7 +115,7 @@ public class Flywheel extends SubsystemBase {
 
         leftMotorSpeed = new LoggedNetworkNumber("LEFT FLYWHEEL SPEED", 0.0);
         rightMotorSpeed = new LoggedNetworkNumber("RIGHT FLYWHEEL SPEED", 0.0);
-
+        flywheelInterpNumber = new LoggedNetworkNumber("Flywheel Speed Found", 0.0);
         FLY_TESTING_kP = new LoggedTunableNumber("FLYWHEEL TESTING_kP", Constants.Shooter.Flywheel.FLYWHEEL_kP);
 
 
@@ -175,6 +179,8 @@ public class Flywheel extends SubsystemBase {
 
     public void getToSpeed(double speed) {
         final MotionMagicVelocityVoltage mmRequest = new MotionMagicVelocityVoltage(speed);
+        final MotionMagicVelocityTorqueCurrentFOC mmRequest2 = new MotionMagicVelocityTorqueCurrentFOC(speed);
+        mmRequest.EnableFOC = false;
         //leftFlywheelMotor.setControl(mmRequest);
         rightFlywheelMotor.setControl(mmRequest.withVelocity(speed));//new Follower(Constants.Shooter.Flywheel.FLYWHEEL_LEFT_MOTOR_ID, 
                                                  // MotorAlignmentValue.Opposed));
@@ -182,7 +188,9 @@ public class Flywheel extends SubsystemBase {
                                                   MotorAlignmentValue.Opposed));
 
 
-        kickerMotor.setControl(mmRequest.withVelocity(-speed*1.2).withSlot(1));
+      //  kickerMotor.setControl(mmRequest.withVelocity(-speed*1.0).withSlot(1));
+    kickerMotor.setControl(mmRequest.withVelocity(-speed*1.0).withSlot(1));
+
     }
 
     public void stopMotors() {
@@ -197,7 +205,7 @@ public class Flywheel extends SubsystemBase {
     public void periodic() {
        leftMotorSpeed.set(getLeftMotorSpeed());
         rightMotorSpeed.set(getRightMotorSpeed());
-        System.out.println("FLYWHEEL: " + flywheelSpeeds.get(FLYWHEEL_INTERP_GOAL.getAsDouble()));
+        //System.out.println("FLYWHEEL: " + flywheelSpeeds.get(FLYWHEEL_INTERP_GOAL.getAsDouble()));
         //System.out.println("kicker speed: " + getKickerMotorSpeed());
         // System.out.println(getLeftMotorSpeed());
         // System.out.println(getRightMotorSpeed());

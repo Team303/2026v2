@@ -28,11 +28,13 @@ public class Hood extends SubsystemBase{
 
     private final LoggedNetworkNumber motorPosition;
   private final LoggedNetworkNumber throughBorePosition;
+  public final LoggedNetworkNumber hoodFoundPos;
 
    private static final double BLUE_HUB_X = 4.6269;
   private static final double BLUE_HUB_Y = 4.03;
   private static final double RED_HUB_X = 11.91358;
   private static final double RED_HUB_Y = 4.03;
+
 
 
   public static LoggedTunableNumber TESTING_kP =
@@ -103,7 +105,7 @@ public class Hood extends SubsystemBase{
         //0.326
         throughBorePosition = new LoggedNetworkNumber("Hood Absolute Position", 0.0);
         motorPosition = new LoggedNetworkNumber("Hood Motor Position", 0.0);
-
+        hoodFoundPos = new LoggedNetworkNumber("Hood Found Pos", 0.0);
         hoodAngles = new InterpolatingDoubleTreeMap();
         //Distance and Angle
         hoodAngles.put(3.7338, 0.48);

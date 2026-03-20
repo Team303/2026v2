@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -16,8 +17,6 @@ public class Spindexer extends SubsystemBase{
 
     public Spindexer(){
         spindexerMotor = new TalonFX(Constants.Spindexer.SPINDEXER_MOTOR_ID, "topside");
-
-
 
 
         // leftElevatorMotor.setInverted(true);
@@ -42,10 +41,10 @@ public class Spindexer extends SubsystemBase{
     spindexerMotorConfigs.NeutralMode = NeutralModeValue.Brake;
 
     // enable stator current limit
-    limitConfigs.StatorCurrentLimit = 60;
+    limitConfigs.StatorCurrentLimit = 40;
     limitConfigs.StatorCurrentLimitEnable = true;
 
-    limitConfigs.SupplyCurrentLimit = 60;
+    limitConfigs.SupplyCurrentLimit = 40;
     limitConfigs.SupplyCurrentLimitEnable = true;
 
     SpindexerMotorTalonFXConfigurator.apply(spindexerMotorConfigs);

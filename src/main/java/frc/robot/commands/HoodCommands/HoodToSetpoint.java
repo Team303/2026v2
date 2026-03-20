@@ -9,14 +9,14 @@ import frc.robot.subsystems.drive.Drive;
 import static frc.robot.RobotContainer.drive;
 import static frc.robot.subsystems.Hood.HOOD_INTERP_POS;
 
-public class RotateToPosition extends Command {
+public class HoodToSetpoint extends Command {
   //private final double GOAL_THRESHOLD = 0 / 360.0;
   private double goal;
   private Hood hood;
  // private Drive drive;
 
-  public RotateToPosition(Hood hood) {
-    this.goal = 0;
+  public HoodToSetpoint(Hood hood, double goal) {
+    this.goal = goal;
   //  this.drive = drive;
     this.hood = hood;
         addRequirements(hood);
@@ -24,16 +24,12 @@ public class RotateToPosition extends Command {
 
   @Override
   public void initialize() {
-    goal = drive.calculateHoodAngle();
   }
 
   @Override
   public void execute() {
   //System.out.println("hood goal: " + goal);
-  goal = drive.calculateHoodAngle();
   hood.hoodFoundPos.set(goal);
-
-
   //goal = HOOD_INTERP_POS.getAsDouble();
   // goal = 0.485;
     System.out.println("hood goal: " + goal);

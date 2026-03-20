@@ -9,34 +9,35 @@ import frc.robot.subsystems.drive.Drive;
 import static frc.robot.RobotContainer.drive;
 import static frc.robot.subsystems.Hood.HOOD_INTERP_POS;
 
-public class RotateToPosition extends Command {
+public class RotateOnPassing extends Command {
   //private final double GOAL_THRESHOLD = 0 / 360.0;
   private double goal;
+  private boolean leftSide;
   private Hood hood;
  // private Drive drive;
 
-  public RotateToPosition(Hood hood) {
+  public RotateOnPassing(Hood hood, boolean leftSide) {
     this.goal = 0;
+    this.leftSide = leftSide;
   //  this.drive = drive;
     this.hood = hood;
-        addRequirements(hood);
+    addRequirements(hood);
   }
 
   @Override
   public void initialize() {
-    goal = drive.calculateHoodAngle();
+    goal = drive.calculateHoodAnglePassing(leftSide);
   }
 
   @Override
   public void execute() {
   //System.out.println("hood goal: " + goal);
-  goal = drive.calculateHoodAngle();
+  goal = drive.calculateHoodAnglePassing(leftSide);
   hood.hoodFoundPos.set(goal);
 
 
-  //goal = HOOD_INTERP_POS.getAsDouble();
-  // goal = 0.485;
-    System.out.println("hood goal: " + goal);
+    //goal = HOOD_INTERP_POS.getAsDouble();
+    // goal = 0.485;
     hood.moveToPos(goal);
 
 

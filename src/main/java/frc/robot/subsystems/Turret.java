@@ -17,14 +17,19 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.LoggedTunableNumber;
 
+import static frc.robot.RobotContainer.controller;
 import static frc.robot.RobotContainer.drive;
 // import static frc.robot.RobotContainer.tempDrivebase;
+import static frc.robot.RobotContainer.opController;
 
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
+import org.littletonrobotics.junction.networktables.LoggedNetworkString;
 
 public class Turret extends SubsystemBase {
 
@@ -56,12 +61,33 @@ public class Turret extends SubsystemBase {
   private static final double RED_HUB_X = 11.91358;
   private static final double RED_HUB_Y = 4.03;
 
+  private static final double BLUE_PASSING_LEFT_X = 2.011;
+  private static final double BLUE_PASSING_LEFT_Y = 6.5;
+  private static final double BLUE_PASSING_RIGHT_X = 2.011;
+  private static final double BLUE_PASSING_RIGHT_Y = 1.877;
+
+  private static final double RED_PASSING_LEFT_X = 14.670;
+  private static final double RED_PASSING_LEFT_Y = 1.429;
+  private static final double RED_PASSING_RIGHT_X = 14.670;
+  private static final double RED_PASSING_RIGHT_Y = 6.5;
+
+  public enum ALLIANCE_SHIFT {
+    BLUE,
+    RED,
+    NONE
+  }
+  private static ALLIANCE_SHIFT previousShift = ALLIANCE_SHIFT.NONE;
+  private static ALLIANCE_SHIFT currentShift = ALLIANCE_SHIFT.NONE;
+
+  private static LoggedNetworkString CurrentAllianceShiftLogged = new LoggedNetworkString("Alliance Shift", "N/A");
+
+
   public Turret() {
     throughBore = new CANcoder(Constants.Shooter.Turret.TURRET_THROUGHBORE_ID, "topside");
     CANcoderConfiguration cc_cfg = new CANcoderConfiguration();
     cc_cfg.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 1;
     cc_cfg.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
-    cc_cfg.MagnetSensor.MagnetOffset = -0.5415625;
+    cc_cfg.MagnetSensor.MagnetOffset = 0.554931640625;
     throughBore.getConfigurator().apply(cc_cfg);
 
     turretMotor = new TalonFX(Constants.Shooter.Turret.TURRET_MOTOR_ID, "topside");
@@ -134,12 +160,11 @@ public class Turret extends SubsystemBase {
   //USE drive.getPose() to get
   public void moveToPos(double pos) {
     if (pos > 0.0 && pos <= Constants.Shooter.Turret.MAX_TURRET_ROTATION) { //Expand to 0.25 later
-      applyMainConfigs();
       final MotionMagicVoltage mmRequest = new MotionMagicVoltage(pos);
       turretMotor.setControl(mmRequest.withPosition(pos));
     } else {
       double newPos = 0.0;
-      if (pos - 0.23 > 0) {
+      if (pos - 0.24 > 0) {
         newPos = Constants.Shooter.Turret.MAX_TURRET_ROTATION;
       } else {
         newPos = 0.0;
@@ -171,7 +196,51 @@ public class Turret extends SubsystemBase {
     double finalRadiansRotate = radiansRotate - normalizeRedRot(curPose.getRotation().getRadians());
     double finalAngleRotate = Math.toDegrees(finalRadiansRotate);
 
-    return finalAngleRotate; //NEED TO TEST AND FIGURE OUT IF ITS +- 45!!!
+    return finalAngleRotate + 135; //NEED TO TEST AND FIGURE OUT IF ITS +- 45!!!
+  }
+
+  private double getBluePassingLeftRotate(Pose2d curPose) {
+    double xDIFF = (BLUE_PASSING_LEFT_X) - curPose.getX();
+    double yDIFF = (BLUE_PASSING_LEFT_Y) - curPose.getY();
+    double radiansRotate = -Math.atan(yDIFF / xDIFF);
+
+    double finalRadiansRotate = radiansRotate + curPose.getRotation().getRadians();
+    double finalAngleRotate = Math.toDegrees(finalRadiansRotate);
+
+    Logger.recordOutput("angle of rotation", finalAngleRotate);
+    return (finalAngleRotate + 135);// * (0.46/0.5);
+  }
+
+  private double getBluePassingRightRotate(Pose2d curPose) {
+    double xDIFF = (BLUE_PASSING_RIGHT_X) - curPose.getX();
+    double yDIFF = (BLUE_PASSING_RIGHT_Y) - curPose.getY();
+    double radiansRotate = -Math.atan(yDIFF / xDIFF);
+
+    double finalRadiansRotate = radiansRotate + curPose.getRotation().getRadians();
+    double finalAngleRotate = Math.toDegrees(finalRadiansRotate);
+    return (finalAngleRotate + 135);// * (0.46/0.5);
+  }
+
+  private double getRedPassingLeftRotate(Pose2d curPose) {
+    double xDIFF = (RED_PASSING_LEFT_X) - curPose.getX();
+    double yDIFF = (RED_PASSING_LEFT_Y) - curPose.getY();
+    double radiansRotate = -Math.atan(yDIFF / xDIFF);
+
+    double finalRadiansRotate = radiansRotate + curPose.getRotation().getRadians();
+    double finalAngleRotate = Math.toDegrees(finalRadiansRotate);
+
+    Logger.recordOutput("angle of rotation", finalAngleRotate);
+    return (finalAngleRotate + 135);// * (0.46/0.5);
+  }
+
+  private double getRedPassingRightRotate(Pose2d curPose) {
+    double xDIFF = (RED_PASSING_RIGHT_X) - curPose.getX();
+    double yDIFF = (RED_PASSING_RIGHT_Y) - curPose.getY();
+    double radiansRotate = -Math.atan(yDIFF / xDIFF);
+
+    double finalRadiansRotate = radiansRotate + curPose.getRotation().getRadians();
+    double finalAngleRotate = Math.toDegrees(finalRadiansRotate);
+    return (finalAngleRotate + 135);// * (0.46/0.5);
   }
 
   private double normalizeRedRot(double input) {
@@ -189,21 +258,51 @@ public class Turret extends SubsystemBase {
     return getBlueHubRotate(currentPose);
   }
 
+  public double getTurretPassingPos(boolean leftSide) {
+    Pose2d currentPose = drive.getPose(); //NEED TO ADD OFFSET FOR TURRET POSITION!!!
+    currentPose = currentPose.plus(new Transform2d(new Translation2d(Constants.Shooter.Turret.OFFSET_POS_X, Constants.Shooter.Turret.OFFSET_POS_Y).rotateBy(new Rotation2d(drive.getPose().getRotation().getRadians())), new Rotation2d(0)));
+    if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) return leftSide ? getRedPassingLeftRotate(currentPose) : getRedPassingRightRotate(currentPose);
+    return leftSide ? getBluePassingLeftRotate(currentPose) : getBluePassingRightRotate(currentPose);
+  }
+
   @Override
   public void periodic() {
     //printRAWPositionForOffset();
-    //System.out.println("GOAL: " + Constants.Shooter.Turret.TURRET_HOME_POS + "; END: " + getMotorPosition() + "; DIFF" + Math.abs(Constants.Shooter.Turret.TURRET_HOME_POS - getMotorPosition()));
-    throughBorePosition.set(getThroughPosition());
     motorPosition.set(getMotorPosition());
-    wallahi++;
-    if (wallahi % 100 == 0) {
-        getTurretTurnPos();  
-    } else if (wallahi > 2_000_000) wallahi = 0;
+    //System.out.println("GOAL: " + Constants.Shooter.Turret.TURRET_HOME_POS + "; END: " + getMotorPosition() + "; DIFF" + Math.abs(Constants.Shooter.Turret.TURRET_HOME_POS - getMotorPosition()));
+    
+    String gameData = "";
+    gameData = DriverStation.getGameSpecificMessage();
+    //System.out.println("DATA: " + gameData);
+      if (gameData.length() > 0) {
+      
+      switch (gameData.charAt(0)) {
+        case 'B':
+          currentShift = ALLIANCE_SHIFT.BLUE;
+          CurrentAllianceShiftLogged.set("BLUE ALLIANCE");
+          break;
+        case 'R':
+          currentShift = ALLIANCE_SHIFT.RED;
+          CurrentAllianceShiftLogged.set("RED ALLIANCE");
+        default:
+          CurrentAllianceShiftLogged.set(gameData);
+          break;
+      }
 
-
-
-
-    System.out.println("throughbore: " + throughBore.getAbsolutePosition().getValueAsDouble());
+      if (currentShift != previousShift && previousShift != ALLIANCE_SHIFT.NONE) {
+        //RUMBLE
+        controller.setRumble(RumbleType.kBothRumble, 0.25);
+        opController.setRumble(RumbleType.kBothRumble, 0.25);
+        wallahi++;
+        if (wallahi > 25) {
+          previousShift = currentShift;
+          wallahi = 0;
+        }
+      } else {
+        //SAME SHIFT
+      }
+    }
+    
   }
 
   

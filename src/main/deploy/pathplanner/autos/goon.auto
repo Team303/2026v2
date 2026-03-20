@@ -7,13 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "arav"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "simple"
+            "pathName": "goon"
           }
         }
       ]

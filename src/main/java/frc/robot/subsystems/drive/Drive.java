@@ -8,8 +8,10 @@
 package frc.robot.subsystems.drive;
 
 import static edu.wpi.first.units.Units.*;
+import static frc.robot.RobotContainer.hood;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
@@ -23,6 +25,7 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
@@ -33,9 +36,11 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.DoubleArrayPublisher;
 import edu.wpi.first.networktables.DoubleSubscriber;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.units.Unit;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -44,7 +49,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
 import frc.robot.Constants.Mode;
+import frc.robot.commands.TurretCommands.TurnToHub;
 import frc.robot.generated.TunerConstants;
 import frc.robot.util.LocalADStarAK;
 import frc.robot.util.LoggedTunableNumber;
@@ -52,6 +59,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 public class Drive extends SubsystemBase {
 
@@ -63,10 +71,20 @@ public class Drive extends SubsystemBase {
   private final DoubleSubscriber tySubscriber;
   private final DoubleSubscriber taSubscriber;
 
-      private static final double BLUE_HUB_X = 4.6269;
+  private static final double BLUE_HUB_X = 4.6269;
   private static final double BLUE_HUB_Y = 4.03;
   private static final double RED_HUB_X = 11.91358;
   private static final double RED_HUB_Y = 4.03;
+
+  private static final double BLUE_PASSING_LEFT_X = 1.513;
+  private static final double BLUE_PASSING_LEFT_Y = 6.500;
+  private static final double BLUE_PASSING_RIGHT_X = 1.513;
+  private static final double BLUE_PASSING_RIGHT_Y = 1.157;
+
+  private static final double RED_PASSING_LEFT_X = 14.670;
+  private static final double RED_PASSING_LEFT_Y = 1.429;
+  private static final double RED_PASSING_RIGHT_X = 14.670;
+  private static final double RED_PASSING_RIGHT_Y = 6.65;
 
   
   
@@ -101,11 +119,13 @@ public class Drive extends SubsystemBase {
   public static InterpolatingDoubleTreeMap hoodAngles;
   public static InterpolatingDoubleTreeMap flywheelSpeeds;
 
+  private static LoggedNetworkNumber distanceLogged;
+
 
   // PathPlanner config constants
-  private static final double ROBOT_MASS_KG = 22.68;
+  private static final double ROBOT_MASS_KG = Units.lbsToKilograms(134);
   private static final double ROBOT_MOI = 6.883;
-  private static final double WHEEL_COF = 1.1;
+  private static final double WHEEL_COF = 1.2;
   private static final RobotConfig PP_CONFIG =
       new RobotConfig(
           ROBOT_MASS_KG,
@@ -128,6 +148,9 @@ public class Drive extends SubsystemBase {
   private final Alert gyroDisconnectedAlert =
       new Alert("Disconnected gyro, using kinematics as fallback.", AlertType.kError);
 
+        public static double dist;
+
+
   private SwerveDriveKinematics kinematics = new SwerveDriveKinematics(getModuleTranslations());
   private Rotation2d rawGyroRotation = Rotation2d.kZero;
   private SwerveModulePosition[] lastModulePositions = // For delta tracking
@@ -148,33 +171,117 @@ public class Drive extends SubsystemBase {
       ModuleIO brModuleIO) {
 
 
+        flywheelSpeeds = new InterpolatingDoubleTreeMap();
         hoodAngles = new InterpolatingDoubleTreeMap();
         //Distance and Angle
-        hoodAngles.put(3.7338, 0.48);
-        hoodAngles.put(4.1148, 0.6);  
-        hoodAngles.put(2.4638, 0.2);  
-        hoodAngles.put(3.2766, 0.35);
-        hoodAngles.put(4.4196, 0.65);  
-        hoodAngles.put(4.9550, 1.0);
-        hoodAngles.put(1.6002, 0.0);
-        hoodAngles.put(2.3876, 0.1);
+        // hoodAngles.put(3.7338, 0.48);
+        // hoodAngles.put(4.1148, 0.6 - 0.015);  
+        // hoodAngles.put(2.4638, 0.2);  
+        // hoodAngles.put(3.2766, 0.35);
+        // hoodAngles.put(4.4196, 0.65 - 0.02);  
+        // hoodAngles.put(4.9550, 1.0 - 0.05);
+        // hoodAngles.put(1.6002, 0.0);
+        // hoodAngles.put(2.3876, 0.1);
+
+        // hoodAngles.put(Units.inchesToMeters(105), 0.3);
+        // hoodAngles.put(Units.inchesToMeters(74.5), 0.04);
+        // hoodAngles.put(Units.inchesToMeters(134), 0.38);
+        // hoodAngles.put(Units.inchesToMeters(139), 0.39);
+        // hoodAngles.put(Units.inchesToMeters(56), 0.00);
+        // hoodAngles.put(Units.inchesToMeters(85), 0.294); //FINISH TUNING THIS ONE
+        // hoodAngles.put(Units.inchesToMeters(124), 0.485);
+
+        // hoodAngles.put(2.28, 0.07);
+        // hoodAngles.put(2.557, 0.12);
+        //hoodAngles.put(2.6, 0.2);
+        //hoodAngles.put(2.72, 0.3);
+        //hoodAngles.put(3.03, 0.35);
+        //hoodAngles.put(3.255, 0.365);
+        //hoodAngles.put(3.343, 0.43);
+        //hoodAngles.put(4.05, 0.7);
+
+      //   hoodAngles.put(1.762, 0.00);
+      //   hoodAngles.put(2.0551861347569482, 0.043);
+      //   hoodAngles.put(2.87, 0.27);
+      //   hoodAngles.put(3.102, 0.35);
+      //   hoodAngles.put(3.400, 0.35); 
+      //   hoodAngles.put(3.842, 0.45);
+      //   hoodAngles.put(4.120, 0.60);
+      //   hoodAngles.put(4.790, 0.80);
+      //  hoodAngles.put(5.244, 0.95);
+
+        hoodAngles.put(1.377756573567455, -0.01);
+        hoodAngles.put(1.658323639241114, 0.0);
+        hoodAngles.put(2.1059877035368135, 0.05);
+        hoodAngles.put(2.254178135902522, 0.0857);
+        hoodAngles.put(2.4347267611588195, 0.13);
+        hoodAngles.put(2.8783984137608805, 0.22);
+        hoodAngles.put(3.171564531171188, 0.25);
+        hoodAngles.put(3.380000000000000, 0.42);
+        hoodAngles.put(3.6348421504160573, 0.45);
+        hoodAngles.put(3.95287091546086, 0.49);
+        hoodAngles.put(4.296466849582756, 0.53);
+        hoodAngles.put(4.662327337938311, 0.80);
+        hoodAngles.put(4.869053261867801, 0.90);
+    //    hoodAngles.put(5.25, 0.0);
+   
 
 
-        flywheelSpeeds = new InterpolatingDoubleTreeMap();
+
         //Distance and Speed
 
-        flywheelSpeeds.put(3.7338, -39.75);
-        flywheelSpeeds.put(4.1148, -41.5);  
-        flywheelSpeeds.put(2.4638, -34.0);  
-        flywheelSpeeds.put(3.2766, -37.0);
-        flywheelSpeeds.put(4.4196, -43.5);  
-        flywheelSpeeds.put(4.9550, -48.75);
-        flywheelSpeeds.put(1.6002, -33.0);
-        flywheelSpeeds.put(2.3876, -36.0);
+        // flywheelSpeeds.put(3.7338, -39.75 - 0.75);
+        // flywheelSpeeds.put(4.1148, -41.5 - 1.5);  
+        // flywheelSpeeds.put(2.4638, -34.0);  
+        // flywheelSpeeds.put(3.2766, -37.0);
+        // flywheelSpeeds.put(4.4196, -43.5 - 1.8);  
+        // flywheelSpeeds.put(4.9550, -48.75 - 2);
+        // flywheelSpeeds.put(1.6002, -33.0);
+        // flywheelSpeeds.put(2.3876, -36.0);
 
+        // flywheelSpeeds.put(Units.inchesToMeters(105), -41.5);
+        // flywheelSpeeds.put(Units.inchesToMeters(74.5), -38.0);
+        // flywheelSpeeds.put(Units.inchesToMeters(134), -43.0);
+        // flywheelSpeeds.put(Units.inchesToMeters(139), -42.0);
+        // flywheelSpeeds.put(Units.inchesToMeters(56), -36.0);
+        // flywheelSpeeds.put(Units.inchesToMeters(85), -36.0); //FINISH TUNING THIS ONE
+        // flywheelSpeeds.put(Units.inchesToMeters(124), -40.5);
+        
+                // flywheelSpeeds.put(2.254, -40.0);
+        // flywheelSpeeds.put(2.557, -40.5);
+        //flywheelSpeeds.put(2.6, -40.0);
+        //flywheelSpeeds.put(2.72, -40.0);
+        //flywheelSpeeds.put(3.03, -40.0);
+        //flywheelSpeeds.put(3.255, -40.0);
+        //flywheelSpeeds.put(3.343, -43.5);
+        //flywheelSpeeds.put(4.05, -45.0);
 
+        // flywheelSpeeds.put(1.762, -38.0);
+        // flywheelSpeeds.put(2.0551861347569482, -39.5);
+        // flywheelSpeeds.put(2.87, -42.7);
+        // flywheelSpeeds.put(3.102, -42.72);
+        // flywheelSpeeds.put(3.400, -42.75);
+        // flywheelSpeeds.put(3.842, -44.75);
+        // flywheelSpeeds.put(4.120, -45.5);
+        // flywheelSpeeds.put(4.790, -47.5);
+        // flywheelSpeeds.put(5.244, -48.25);
 
+        flywheelSpeeds.put(1.377756573567455, -37.0);
+        flywheelSpeeds.put(1.658323639241114, -37.75);
+        flywheelSpeeds.put(2.1059877035368135, -38.5);
+        flywheelSpeeds.put(2.254178135902522, -38.942);
+        flywheelSpeeds.put(2.4347267611588195, -39.5);
+        flywheelSpeeds.put(2.8783984137608805, -41.25);
+        flywheelSpeeds.put(3.171564531171188, -42.25);
+        flywheelSpeeds.put(3.380000000000000, -42.75);
+        flywheelSpeeds.put(3.6348421504160573, -43.5);
+        flywheelSpeeds.put(3.95287091546086, -44.5);
+        flywheelSpeeds.put(4.296466849582756, -45.75);
+        flywheelSpeeds.put(4.662327337938311, -46.50);
+        flywheelSpeeds.put(4.869053261867801, -47.5);
+      //  flywheelSpeeds.put(5.25, 0.0);
 
+    distanceLogged = new LoggedNetworkNumber("Distance Logged", 0.0);
 
     this.gyroIO = gyroIO;
     modules[0] = new Module(flModuleIO, 0, TunerConstants.FrontLeft);
@@ -212,7 +319,7 @@ public class Drive extends SubsystemBase {
         this::getChassisSpeeds,
         this::runVelocity,
         new PPHolonomicDriveController(
-            new PIDConstants(8.0, 0.0, 0.0), new PIDConstants(5.0, 0.0, 0.0)),
+            new PIDConstants(30.0, 0.0, 0.0), new PIDConstants(30.0, 0.0, 0.0)),
         PP_CONFIG,
         () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
         this);
@@ -240,6 +347,7 @@ public class Drive extends SubsystemBase {
 
   @Override
   public void periodic() {
+    //System.out.println(getPose());
     odometryLock.lock(); // Prevents odometry updates while reading data
     gyroIO.updateInputs(gyroInputs);
     Logger.processInputs("Drive/Gyro", gyroInputs);
@@ -342,21 +450,49 @@ public class Drive extends SubsystemBase {
   }
 
   public double calculateFlyWheelSpeed() {
-        double robotPoseX = getPose().getTranslation().getX();
-        double robotPoseY = getPose().getY();
-        double distance = Math.sqrt(Math.pow((robotPoseX - BLUE_HUB_X), 2) + Math.pow((robotPoseY - BLUE_HUB_Y), 2));
-
-        return flywheelSpeeds.get(distance);
+      Pose2d currentPose = getPose(); 
+      currentPose = currentPose.plus(new Transform2d(new Translation2d(Constants.Shooter.Turret.OFFSET_POS_X, Constants.Shooter.Turret.OFFSET_POS_Y).rotateBy(new Rotation2d(getPose().getRotation().getRadians())), new Rotation2d(0)));
+      double distance = DriverStation.getAlliance().get() == DriverStation.Alliance.Blue ? Math.sqrt(Math.pow((currentPose.getX() - BLUE_HUB_X), 2) + Math.pow((currentPose.getY() - BLUE_HUB_Y), 2)) : Math.sqrt(Math.pow((currentPose.getX() - RED_HUB_X), 2) + Math.pow((currentPose.getY() - RED_HUB_Y), 2));
+      dist = distance;
+      distanceLogged.set(distance);
+      return flywheelSpeeds.get(distance);
     }
 
-    public double calculateHoodAngle() {
-       double robotPoseX = getPose().getTranslation().getX();
-        double robotPoseY = getPose().getY();
-        double distance = Math.sqrt(Math.pow((robotPoseX - BLUE_HUB_X), 2) + Math.pow((robotPoseY - BLUE_HUB_Y), 2));
-        System.out.println("pose: " + getPose());
-        return hoodAngles.get(distance);
+   
 
-        
+    public double calculateHoodAngle() {
+      Pose2d currentPose = getPose(); 
+      currentPose = currentPose.plus(new Transform2d(new Translation2d(Constants.Shooter.Turret.OFFSET_POS_X, Constants.Shooter.Turret.OFFSET_POS_Y).rotateBy(new Rotation2d(getPose().getRotation().getRadians())), new Rotation2d(0)));
+      double distance = DriverStation.getAlliance().get() == DriverStation.Alliance.Blue ? Math.sqrt(Math.pow((currentPose.getX() - BLUE_HUB_X), 2) + Math.pow((currentPose.getY() - BLUE_HUB_Y), 2)) : Math.sqrt(Math.pow((currentPose.getX() - RED_HUB_X), 2) + Math.pow((currentPose.getY() - RED_HUB_Y), 2));
+      distanceLogged.set(distance);
+      return hoodAngles.get(distance);
+    }
+
+    public double calculateFlyWheelSpeedPassing(boolean leftSide) {
+      Pose2d currentPose = getPose();
+      currentPose = currentPose.plus(new Transform2d(new Translation2d(Constants.Shooter.Turret.OFFSET_POS_X, Constants.Shooter.Turret.OFFSET_POS_Y).rotateBy(new Rotation2d(getPose().getRotation().getRadians())), new Rotation2d(0)));
+      double distance = 0.0;
+      if (leftSide) {
+        distance = DriverStation.getAlliance().get() == DriverStation.Alliance.Blue ? Math.sqrt(Math.pow((currentPose.getX() - BLUE_PASSING_LEFT_X), 2) + Math.pow((currentPose.getY() - BLUE_PASSING_LEFT_Y), 2)) : Math.sqrt(Math.pow((currentPose.getX() - RED_PASSING_LEFT_X), 2) + Math.pow((currentPose.getY() - RED_PASSING_LEFT_Y), 2));
+      } else {
+        distance = DriverStation.getAlliance().get() == DriverStation.Alliance.Blue ? Math.sqrt(Math.pow((currentPose.getX() - BLUE_PASSING_RIGHT_X), 2) + Math.pow((currentPose.getY() - BLUE_PASSING_RIGHT_Y), 2)) : Math.sqrt(Math.pow((currentPose.getX() - RED_PASSING_RIGHT_X), 2) + Math.pow((currentPose.getY() - RED_PASSING_RIGHT_Y), 2));
+      }
+      dist = distance;
+      distanceLogged.set(distance);
+      return flywheelSpeeds.get(distance);
+    }
+
+    public double calculateHoodAnglePassing(boolean leftSide) {
+      Pose2d currentPose = getPose(); 
+      currentPose = currentPose.plus(new Transform2d(new Translation2d(Constants.Shooter.Turret.OFFSET_POS_X, Constants.Shooter.Turret.OFFSET_POS_Y).rotateBy(new Rotation2d(getPose().getRotation().getRadians())), new Rotation2d(0)));
+      double distance = 0.0;
+      if (leftSide) {
+        distance = DriverStation.getAlliance().get() == DriverStation.Alliance.Blue ? Math.sqrt(Math.pow((currentPose.getX() - BLUE_PASSING_LEFT_X), 2) + Math.pow((currentPose.getY() - BLUE_PASSING_LEFT_Y), 2)) : Math.sqrt(Math.pow((currentPose.getX() - RED_PASSING_LEFT_X), 2) + Math.pow((currentPose.getY() - RED_PASSING_LEFT_Y), 2));
+      } else {
+        distance = DriverStation.getAlliance().get() == DriverStation.Alliance.Blue ? Math.sqrt(Math.pow((currentPose.getX() - BLUE_PASSING_RIGHT_X), 2) + Math.pow((currentPose.getY() - BLUE_PASSING_RIGHT_Y), 2)) : Math.sqrt(Math.pow((currentPose.getX() - RED_PASSING_RIGHT_X), 2) + Math.pow((currentPose.getY() - RED_PASSING_RIGHT_Y), 2));
+      }
+      distanceLogged.set(distance);
+      return hoodAngles.get(distance);
     }
 
   public boolean fuelInVision() {

@@ -19,7 +19,7 @@ public class TurnToPosition extends Command {
   @Override
   public void initialize() {
     //this.goal = GOAL_POS.getAsDouble();
-    System.out.println("THRES: " + GOAL_THRESHOLD);
+    //System.out.println("THRES: " + GOAL_THRESHOLD);
   }
 
   @Override
@@ -30,12 +30,12 @@ public class TurnToPosition extends Command {
   @Override
   public boolean isFinished() {
     //System.out.println("isFinished Diff: " + Math.abs(goal - turret.throughBore.getPosition().getValueAsDouble()) + "; Thres: " + GOAL_THRESHOLD);
-    return Math.abs(goal - turret.getMotorPosition()) < GOAL_THRESHOLD;
+    return false;//Math.abs(goal - turret.getMotorPosition()) < GOAL_THRESHOLD;
   }
 
   @Override
   public void end(boolean interrupted) {
-    System.out.println("GOAL: " + goal + "; END: " + turret.getMotorPosition() + "; DIFF" + Math.abs(goal - turret.getMotorPosition()));
+    //System.out.println("GOAL: " + goal + "; END: " + turret.getMotorPosition() + "; DIFF" + Math.abs(goal - turret.getMotorPosition()));
     turret.stopMotor();
   }
 }

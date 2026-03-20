@@ -1,31 +1,39 @@
 package frc.robot.commands.TurretCommands;
+
+
+import static frc.robot.RobotContainer.turret;
+
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants;
 import frc.robot.subsystems.Turret;
 
-public class TurnToHub extends Command {
-  private double goal;
+public class TurnToPassing extends Command {
+  private final double GOAL_THRESHOLD = 0.0 / 360.0;
+  private double goal; //Rotations
+  private boolean leftSide;
   Turret turret;
 
-  public TurnToHub(Turret turret) {
+  public TurnToPassing(Turret turret, boolean leftSide) {
     addRequirements(turret);
     this.turret = turret;
+    this.leftSide = leftSide;
   }
 
   @Override
   public void initialize() {
     //turret.createNewConfig();
-    this.goal = turret.getTurretTurnPos() / 360.0;
+    this.goal = turret.getTurretPassingPos(leftSide) / 360.0;
     //System.out.println("GOAL: " + goal);
   }
 
   @Override
   public void execute() {
-    //System.out.println("GOALLLLLL: " + turret.getTurretTurnPos());
-    goal = turret.getTurretTurnPos() / 360.0;
+    //System.out.println("GOALLLLLL: " + turret.getTurretPassingPos(leftSide));
+    goal = turret.getTurretPassingPos(leftSide) / 360.0;
 
    // System.out.println("Rot goal: " + goal + " | Angle Goal: " + -turret.getTurretTurnPos());
     turret.moveToPos(goal);
-    System.out.println("GOAL: " + goal + "; END: " + turret.getMotorPosition() + "; DIFF deg" + Math.abs(goal - turret.getMotorPosition()) * 360);
+    System.out.println("GOAL: " + goal + "; END: " + turret.getMotorPosition() + "; DIFF" + Math.abs(goal - turret.getMotorPosition() * 360));
   }
 
   @Override

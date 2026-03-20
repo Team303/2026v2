@@ -58,10 +58,10 @@ public class IntakeBelt extends SubsystemBase{
         takeMotorConfigs.NeutralMode = NeutralModeValue.Brake;
 
         // enable stator current limit
-        limitConfigs2.StatorCurrentLimit = 60;
+        limitConfigs2.StatorCurrentLimit = 40;
         limitConfigs2.StatorCurrentLimitEnable = true;
 
-        limitConfigs2.SupplyCurrentLimit = 60;
+        limitConfigs2.SupplyCurrentLimit = 40;
         limitConfigs2.SupplyCurrentLimitEnable = true;
 
         takeMotorTalonFXConfigurator.apply(takeMotorConfigs);

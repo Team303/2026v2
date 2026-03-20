@@ -120,7 +120,7 @@ public final class Constants {
       public static final int TURRET_THROUGHBORE_ID = 41; // NEED TO CHANGE
       public static final int TURRET_MOTOR_ID = 31; // NEED TO CHANGE
       public static final double TURRET_kS = 0.13;
-      public static final double TURRET_kP = 45;
+      public static final double TURRET_kP = 80;
       public static final double TURRET_kI = 0.0;
       public static final double TURRET_kD = 0.03;
       public static final double TURRET_kA = 0.0;
@@ -128,8 +128,8 @@ public final class Constants {
       public static final double TURRET_maxV = 125;
       public static final double TURRET_maxA = 25;
 
-      public static final double OFFSET_POS_X = 0.1651;
-      public static final double OFFSET_POS_Y = 0.08255;
+      public static final double OFFSET_POS_Y = 0.1651;
+      public static final double OFFSET_POS_X = 0.08255;
 
       public static final double TURRET_MOTOR_THROUGHBORE_RATIO = 2.8;
 
@@ -174,8 +174,22 @@ public final class Constants {
       public static final double GOAL_POS = 0.0;
     }
     
-    public static class LED{
-      public static final int CANDLE_ID = 0; //change
-    }
   }
+
+  public static class LED{
+      public static final int LED_ID = 45; //change
+      public static enum AnimationType{
+        None,
+        ColorFlow,
+        Fire,
+        Larson,
+        Rainbow,
+        RgbFade,
+        SingleFade,
+        Strobe,
+        Twinkle,
+        TwinkleOff,
+        Solid
+      }
+    }
 }

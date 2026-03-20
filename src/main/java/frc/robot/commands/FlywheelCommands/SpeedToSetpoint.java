@@ -9,27 +9,24 @@ import frc.robot.subsystems.Flywheel;
 import static frc.robot.subsystems.Flywheel.FLYWHEEL_INTERP_GOAL;
 import static frc.robot.RobotContainer.drive;
 
-public class TurnToSpeed extends Command {
+public class SpeedToSetpoint extends Command {
 
   private double goal_speed;
   private Flywheel flywheel;
 
-  public TurnToSpeed(Flywheel flywheel) {
-    this.goal_speed = 0;
+  public SpeedToSetpoint(Flywheel flywheel, double goal_speed) {
+    this.goal_speed = goal_speed;
     this.flywheel = flywheel;
     addRequirements(flywheel);
   }
 
   @Override
   public void initialize() {
-    goal_speed = drive.calculateFlyWheelSpeed();
-    goal_speed -= 1;
   }
 
   @Override
   public void execute() {
     RobotContainer.shooting = true; 
-    goal_speed = drive.calculateFlyWheelSpeed();
     flywheel.flywheelInterpNumber.set(goal_speed);
     // goal_speed = -41.5;
     //goal_speed = FLYWHEEL_INTERP_GOAL.getAsDouble();

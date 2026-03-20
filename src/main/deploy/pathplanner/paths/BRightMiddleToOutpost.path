@@ -3,48 +3,73 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.5467141162514837,
-        "y": 0.6297153024911029
+        "x": 8.216,
+        "y": 3.911
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.654222976326327,
-        "y": 1.2311812631157282
+        "x": 8.160004042639757,
+        "y": 2.723892555479141
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 1.8897983392699125,
-        "y": 1.5657651245497801
+        "x": 7.807,
+        "y": 1.2429893238434158
       },
       "prevControl": {
-        "x": 2.0806840974678815,
-        "y": 1.74696151687723
+        "x": 8.287196887494225,
+        "y": 1.8296978579932008
       },
       "nextControl": {
-        "x": 1.3597788606575834,
-        "y": 1.062649447956305
+        "x": 7.199017460384137,
+        "y": 0.5001512216056597
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 0.5126215895664716,
-        "y": 0.6297153024911029
+        "x": 3.547,
+        "y": 0.63
       },
       "prevControl": {
-        "x": 0.240688742230235,
-        "y": 0.4867717278651802
+        "x": 4.893529041937128,
+        "y": 0.9209558959439718
+      },
+      "nextControl": {
+        "x": 3.3026395065423046,
+        "y": 0.5771989655677887
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 0.52338078291815,
+        "y": 0.63
+      },
+      "prevControl": {
+        "x": 0.22488305205566217,
+        "y": 0.6324465858149874
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": null
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 1.5947368421052546,
+      "rotationDegrees": 0.0
+    },
+    {
+      "waypointRelativePos": 1.8947368421052664,
+      "rotationDegrees": 0.0
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
@@ -64,7 +89,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 179.225779835072
+    "rotation": -90.0
   },
   "useDefaultConstraints": true
 }
