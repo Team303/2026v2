@@ -178,27 +178,6 @@ public class Turret extends SubsystemBase {
     turretMotor.setVoltage(0);
   }
 
-  private double getBlueHubRotate(Pose2d curPose) {
-    double xDIFF = BLUE_HUB_X - curPose.getX();
-    double yDIFF = BLUE_HUB_Y - curPose.getY();
-    double radiansRotate = -Math.atan(yDIFF / xDIFF);
-
-    double finalRadiansRotate = radiansRotate + curPose.getRotation().getRadians();
-    double finalAngleRotate = Math.toDegrees(finalRadiansRotate);
-    return (finalAngleRotate + 135);// * (0.46/0.5);
-  }
-
-  private double getRedHubRotate(Pose2d curPose) {
-    double xDIFF = RED_HUB_X - curPose.getX();
-    double yDIFF = RED_HUB_Y - curPose.getY(); 
-    double radiansRotate = -Math.atan(yDIFF / xDIFF);
-    
-    double finalRadiansRotate = radiansRotate - normalizeRedRot(curPose.getRotation().getRadians());
-    double finalAngleRotate = Math.toDegrees(finalRadiansRotate);
-
-    return finalAngleRotate + 135; //NEED TO TEST AND FIGURE OUT IF ITS +- 45!!!
-  }
-
   private double getBluePassingLeftRotate(Pose2d curPose) {
     double xDIFF = (BLUE_PASSING_LEFT_X) - curPose.getX();
     double yDIFF = (BLUE_PASSING_LEFT_Y) - curPose.getY();
@@ -252,9 +231,31 @@ public class Turret extends SubsystemBase {
     return output;
   }
 
+  private double getBlueHubRotate(Pose2d curPose) {
+    double xDIFF = BLUE_HUB_X - curPose.getX();
+    double yDIFF = BLUE_HUB_Y - curPose.getY();
+    double radiansRotate = -Math.atan(yDIFF / xDIFF);
+
+    double finalRadiansRotate = radiansRotate + curPose.getRotation().getRadians();
+    double finalAngleRotate = Math.toDegrees(finalRadiansRotate);
+    return (finalAngleRotate + 135);
+  }
+
+  private double getRedHubRotate(Pose2d curPose) {
+    double xDIFF = RED_HUB_X - curPose.getX();
+    double yDIFF = RED_HUB_Y - curPose.getY(); 
+    double radiansRotate = -Math.atan(yDIFF / xDIFF);
+    
+    double finalRadiansRotate = radiansRotate - normalizeRedRot(curPose.getRotation().getRadians());
+    double finalAngleRotate = Math.toDegrees(finalRadiansRotate);
+
+    return finalAngleRotate + 135; 
+  }
+
   public double getTurretTurnPos() {
-    Pose2d currentPose = drive.getPose(); //NEED TO ADD OFFSET FOR TURRET POSITION!!!
-    currentPose = currentPose.plus(new Transform2d(new Translation2d(Constants.Shooter.Turret.OFFSET_POS_X, Constants.Shooter.Turret.OFFSET_POS_Y).rotateBy(new Rotation2d(drive.getPose().getRotation().getRadians())), new Rotation2d(0)));
+    Pose2d currentPose = drive.getPose(); 
+    currentPose = currentPose.plus(new Transform2d(new Translation2d(Constants.Shooter.Turret.OFFSET_POS_X, Constants.Shooter.Turret.OFFSET_POS_Y)
+                                                   .rotateBy(new Rotation2d(drive.getPose().getRotation().getRadians())), new Rotation2d(0)));
     if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) return getRedHubRotate(currentPose);
     return getBlueHubRotate(currentPose);
   }
