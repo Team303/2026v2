@@ -20,21 +20,20 @@ public class spin2 extends Command{
         addRequirements(spindexer);
     }
 
-    public void initialize(){
+    public void initialize() {
 
     }
 
-    public void execute(){
+    public void execute() {
         //System.out.println("spinning");
-        if(forward){
-            spindexer.spindexerMotor.set(fast ? 0.65 : 0.6);
-        }
-        else{
-            spindexer.spindexerMotor.set(fast ? -0.65 : -0.6);
+        if (forward) {
+            spindexer.spindexerMotor.set(fast ? 1 : 1);
+        } else {
+            spindexer.spindexerMotor.set(fast ? -0.9 : -1);
         }
     }
 
-    public void end(){
+    public void end() {
      //   spindexer.spindexerMotor.set(0);
     }
 }

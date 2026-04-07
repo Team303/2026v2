@@ -11,22 +11,9 @@
           }
         },
         {
-          "type": "deadline",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "aravBlueRight"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "intake"
-                }
-              }
-            ]
+            "pathName": "aravBlueRightBump"
           }
         },
         {
@@ -111,6 +98,12 @@
                       "data": {
                         "name": "Shoot3"
                       }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "intake"
+                      }
                     }
                   ]
                 }
@@ -121,7 +114,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "BRightTrenchToMiddle"
+            "pathName": "BRightBumpToMiddle"
           }
         },
         {
@@ -144,9 +137,15 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "Stop Intake"
+          }
+        },
+        {
           "type": "path",
           "data": {
-            "pathName": "BRightMiddleToTrench"
+            "pathName": "BRightMiddleToBump"
           }
         },
         {

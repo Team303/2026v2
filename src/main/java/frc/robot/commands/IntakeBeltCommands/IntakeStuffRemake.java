@@ -4,21 +4,27 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.RobotContainer;
 import frc.robot.subsystems.IntakeBelt;
 
-public class IntakeStuffAuto extends Command {
+public class IntakeStuffRemake extends Command {
     
+    boolean forward; 
     IntakeBelt intakeBelt;
 
-    public IntakeStuffAuto(IntakeBelt intakebelt) {
+    public 
+    IntakeStuffRemake(IntakeBelt intakebelt, boolean forward) {
         addRequirements(intakebelt);
         this.intakeBelt = intakebelt;
-        
+        this.forward = forward;
     }
     public void initialize(){
         
     }
     public void execute(){
-        intakeBelt.beltMotor.set(-1);
-        intakeBelt.takeMotor.set(0);
+        if (forward) {
+            intakeBelt.beltMotor.set(-1);
+        }
+        else {
+            intakeBelt.beltMotor.set(0.75);
+        }
         
     }
     public void end(){

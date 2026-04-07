@@ -11,22 +11,9 @@
           }
         },
         {
-          "type": "deadline",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "aravBlueRight"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "intake"
-                }
-              }
-            ]
+            "pathName": "aravBlueRight"
           }
         },
         {
@@ -146,7 +133,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "BRightMiddleToTrench"
+            "pathName": "BRightMiddleToTrenchCOPY"
           }
         },
         {

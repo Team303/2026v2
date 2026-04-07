@@ -20,6 +20,7 @@ import edu.wpi.first.math.interpolation.InterpolatingTreeMap;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
@@ -49,6 +50,8 @@ import frc.robot.commands.IntakeBeltCommands.IntakeDefault;
 import frc.robot.commands.IntakeBeltCommands.IntakeDown;
 import frc.robot.commands.IntakeBeltCommands.IntakeStuff;
 import frc.robot.commands.IntakeBeltCommands.IntakeStuffAuto;
+import frc.robot.commands.IntakeBeltCommands.IntakeStuffRemake;
+import frc.robot.commands.IntakeBeltCommands.IntakeUp;
 import frc.robot.commands.LEDCommands.SetLEDs;
 import frc.robot.commands.SpindexerCommands.SpinDefault;
 import frc.robot.commands.SpindexerCommands.spin2;
@@ -106,6 +109,7 @@ public class RobotContainer {
   // Controller
   public static CommandXboxController controller = new CommandXboxController(0);
   public static CommandXboxController opController = new CommandXboxController(1);
+  public static Joystick flightStick = new Joystick(2);
 
 
   // Dashboard inputs
@@ -224,6 +228,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("Shoot3", new spin2(spindexer, true, false));
     NamedCommands.registerCommand("just hood", new RotateToPosition(hood));
     NamedCommands.registerCommand("intake", new IntakeStuffAuto(intakeBelt));
+    NamedCommands.registerCommand("Stop Intake", new IntakeDefault(intakeBelt));
 
   }
 
@@ -237,27 +242,32 @@ public class RobotContainer {
         intakeBelt.setDefaultCommand(new IntakeDefault(intakeBelt));
         spindexer.setDefaultCommand(new SpinDefault(spindexer));
         hood.setDefaultCommand(new HoodDefault(hood));
-        led.setDefaultCommand(new SetLEDs(led, AnimationType.Solid, AnimationType.ColorFlow));
+      //  led.setDefaultCommand(new SetLEDs(led, AnimationType.Solid, AnimationType.ColorFlow));
 
         //opController.back().toggleOnTrue(new SetLEDs(led, AnimationType.Rainbow, AnimationType.SingleFade));
 
         opController.y().toggleOnTrue(new ParallelCommandGroup(new SetLEDs(led, AnimationType.Rainbow, AnimationType.Rainbow), new TurnToHub(turret), new RotateToPosition(hood), new TurnToSpeed(flywheel)));
-        opController.x().toggleOnTrue(new ParallelCommandGroup(new SetLEDs(led, AnimationType.Fire, AnimationType.Fire), new TurnToPassing(turret, true), new RotateOnPassing(hood, true), new SpeedToPassing(flywheel, true)));
-        opController.b().toggleOnTrue(new ParallelCommandGroup(new SetLEDs(led, AnimationType.Fire, AnimationType.Fire), new TurnToPassing(turret, false), new RotateOnPassing(hood, false), new SpeedToPassing(flywheel, false)));
+        opController.x().toggleOnTrue(new ParallelCommandGroup(new SetLEDs(led, AnimationType.Fire, AnimationType.Fire), new TurnToPassing(turret, true) /*, new RotateOnPassing(hood, true), new SpeedToPassing(flywheel, true)*/));
+        opController.b().toggleOnTrue(new ParallelCommandGroup(new SetLEDs(led, AnimationType.Fire, AnimationType.Fire), new TurnToPassing(turret, false) /*, new RotateOnPassing(hood, false), new SpeedToPassing(flywheel, false)*/));
         opController.a().toggleOnTrue(new HomeTurret(turret));
 
         opController.leftTrigger().toggleOnTrue(new spin2(spindexer, false, true));
         opController.rightTrigger().toggleOnTrue(new spin2(spindexer, true, false));
 
         opController.leftBumper().toggleOnTrue(new IntakeStuff(intakeBelt, false));
-        opController.rightBumper().toggleOnTrue(new IntakeStuff(intakeBelt, true));
+        opController.rightBumper().toggleOnTrue(new IntakeStuffAuto(intakeBelt));
+
+        opController.pov(90).toggleOnTrue(new IntakeUp(intakeBelt));        
 
         //NEED TO COMPLETE SETPOINTS
-        opController.pov(0).toggleOnTrue(new ParallelCommandGroup(new TurnToHub(turret), new HoodToSetpoint(hood, 0.12639097555576206), new SpeedToSetpoint(flywheel, -40.45454095621027)));     
-        opController.pov(90).toggleOnTrue(new ParallelCommandGroup(new TurnToHub(turret), new HoodToSetpoint(hood, 0.0), new SpeedToSetpoint(flywheel, 0.0)));
+     //   opController.pov(0).toggleOnTrue(new ParallelCommandGroup(new TurnToHub(turret), new HoodToSetpoint(hood, 0.12639097555576206), new SpeedToSetpoint(flywheel, -40.45454095621027)));     
         opController.pov(180).toggleOnTrue(new IntakeDown(intakeBelt));
-        opController.pov(270).toggleOnTrue(new ParallelCommandGroup(new TurnToHub(turret), new HoodToSetpoint(hood, 0.0), new SpeedToSetpoint(flywheel, 0.0)));         
 
+        //TESTING ONLY COMMANDS
+     //   opController.pov(90).toggleOnTrue(new ParallelCommandGroup(new TurnToPosition(turret, 0.25), new HoodToSetpoint(hood, 0.25), new SpeedToSetpoint(flywheel, -38.0))); //TESTING
+     //   opController.pov(270).toggleOnTrue(new ParallelCommandGroup(new TurnToPosition(turret, 0.40), new HoodToSetpoint(hood, 0.7), new SpeedToSetpoint(flywheel, -45.0))); //TESTING        
+        opController.povLeft().toggleOnTrue(new IntakeStuffRemake(intakeBelt, true));
+        opController.povUp().toggleOnTrue(new IntakeUp(intakeBelt));
 //     //opController.back().toggleOnTrue(new RotateToPosition(hood, 0.3));
 //     opController.leftStick().toggleOnTrue(new spin2(spindexer, false, true));
 //     opController.pov(0).toggleOnTrue(new IntakeStuff(intakeBelt, true));
@@ -296,9 +306,16 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> -controller.getLeftY() * (shooting ? 0.3 : 1),
-            () -> -controller.getLeftX() * (shooting ? 0.3 : 1),
-            () -> -controller.getRightX() * (shooting ? 0.3 : 1)));
+            () -> -controller.getLeftY() ,
+            () -> -controller.getLeftX() ,
+            () -> -controller.getRightX()));
+
+    // drive.setDefaultCommand(
+    //     DriveCommands.joystickDrive(
+    //         drive,
+    //         () -> -flightStick.getY() ,
+    //         () -> -flightStick.getX() ,
+    //         () -> -flightStick.getThrottle()));
 
     // Lock to 0° when A button is held
     controller
@@ -318,7 +335,11 @@ public class RobotContainer {
         .toggleOnTrue(
             new ParallelCommandGroup(
                 new DriveToPoseStraight(
-                    drive, new Pose2d(new Translation2d(DriverStation.getAlliance().get() == Alliance.Blue ? 2.815 : 16.54 - 2.185, 5.611), new Rotation2d(Units.degreesToRadians(DriverStation.getAlliance().get() == Alliance.Blue ?-40 : 40)))),
+                    drive, new Pose2d(
+                        new Translation2d(
+                            DriverStation.getAlliance().get() == Alliance.Blue ? 2.815 : 16.54 - 2.185, 5.611), 
+                        new Rotation2d(Units.degreesToRadians(
+                            DriverStation.getAlliance().get() == Alliance.Blue ? -40 : 40)))),
                 new SetLEDs(led, AnimationType.Strobe, AnimationType.Strobe)));
 
 

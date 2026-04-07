@@ -45,6 +45,7 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -118,6 +119,9 @@ public class Drive extends SubsystemBase {
 
   public static InterpolatingDoubleTreeMap hoodAngles;
   public static InterpolatingDoubleTreeMap flywheelSpeeds;
+  public static InterpolatingDoubleTreeMap timeOfFlight;
+
+
 
   private static LoggedNetworkNumber distanceLogged;
 
@@ -142,7 +146,7 @@ public class Drive extends SubsystemBase {
 
   static final Lock odometryLock = new ReentrantLock();
   private final GyroIO gyroIO;
-  private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
+  public final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
   private final Module[] modules = new Module[4]; // FL, FR, BL, BR
   private final SysIdRoutine sysId;
   private final Alert gyroDisconnectedAlert =
@@ -173,6 +177,7 @@ public class Drive extends SubsystemBase {
 
         flywheelSpeeds = new InterpolatingDoubleTreeMap();
         hoodAngles = new InterpolatingDoubleTreeMap();
+        timeOfFlight = new InterpolatingDoubleTreeMap();
         //Distance and Angle
         // hoodAngles.put(3.7338, 0.48);
         // hoodAngles.put(4.1148, 0.6 - 0.015);  
@@ -281,6 +286,13 @@ public class Drive extends SubsystemBase {
         flywheelSpeeds.put(4.869053261867801, -47.5);
       //  flywheelSpeeds.put(5.25, 0.0);
 
+      timeOfFlight.put(2.6017, 1.01);
+      timeOfFlight.put(1.9418,0.94);
+      timeOfFlight.put(4.4621,1.06);
+      timeOfFlight.put(3.860, 1.12);
+      timeOfFlight.put(3.13,1.07);
+
+
     distanceLogged = new LoggedNetworkNumber("Distance Logged", 0.0);
 
     this.gyroIO = gyroIO;
@@ -347,6 +359,8 @@ public class Drive extends SubsystemBase {
 
   @Override
   public void periodic() {
+
+    //System.out.println("Velocity: " + getVelocity());
     //System.out.println(getPose());
     odometryLock.lock(); // Prevents odometry updates while reading data
     gyroIO.updateInputs(gyroInputs);
@@ -449,6 +463,16 @@ public class Drive extends SubsystemBase {
 //);
   }
 
+  public double getDistance() {
+          Pose2d currentPose = getPose(); 
+      currentPose = currentPose.plus(new Transform2d(new Translation2d(Constants.Shooter.Turret.OFFSET_POS_X, Constants.Shooter.Turret.OFFSET_POS_Y).rotateBy(new Rotation2d(getPose().getRotation().getRadians())), new Rotation2d(0)));
+          double distance = DriverStation.getAlliance().get() == DriverStation.Alliance.Blue ? Math.sqrt(Math.pow((currentPose.getX() - BLUE_HUB_X), 2) + Math.pow((currentPose.getY() - BLUE_HUB_Y), 2)) : Math.sqrt(Math.pow((currentPose.getX() - RED_HUB_X), 2) + Math.pow((currentPose.getY() - RED_HUB_Y), 2));
+  return distance;
+        }
+
+      
+
+
   public double calculateFlyWheelSpeed() {
       Pose2d currentPose = getPose(); 
       currentPose = currentPose.plus(new Transform2d(new Translation2d(Constants.Shooter.Turret.OFFSET_POS_X, Constants.Shooter.Turret.OFFSET_POS_Y).rotateBy(new Rotation2d(getPose().getRotation().getRadians())), new Rotation2d(0)));
@@ -458,12 +482,84 @@ public class Drive extends SubsystemBase {
       return flywheelSpeeds.get(distance);
     }
 
+
+     public double calculateFlyWheelSpeed(Pose2d pose) {
+   //   Pose2d currentPose = getPose(); 
+   //   currentPose = currentPose.plus(new Transform2d(new Translation2d(Constants.Shooter.Turret.OFFSET_POS_X, Constants.Shooter.Turret.OFFSET_POS_Y).rotateBy(new Rotation2d(getPose().getRotation().getRadians())), new Rotation2d(0)));
+      double distance = DriverStation.getAlliance().get() == DriverStation.Alliance.Blue ? Math.sqrt(Math.pow((pose.getX() - BLUE_HUB_X), 2) + Math.pow((pose.getY() - BLUE_HUB_Y), 2)) : Math.sqrt(Math.pow((pose.getX() - RED_HUB_X), 2) + Math.pow((pose.getY() - RED_HUB_Y), 2));
+      dist = distance;
+      distanceLogged.set(distance);
+      return flywheelSpeeds.get(distance);
+    }
+
+    public Pose2d whoKnows() {
+      // Calculate estimated pose while accounting for phase delay
+      Pose2d estimatedPose = getPose();
+      estimatedPose =
+          estimatedPose.exp(
+              new Twist2d(
+                  getChassisSpeeds().vxMetersPerSecond * 0.03,
+                  getChassisSpeeds().vyMetersPerSecond * 0.03,
+                  getChassisSpeeds().omegaRadiansPerSecond * 0.03));
+
+        // Calculate distance from turret to target
+      Translation2d target = new Translation2d(BLUE_HUB_X, BLUE_HUB_Y);
+      Translation2d robotToTurret = new Translation2d(Constants.Shooter.Turret.OFFSET_POS_X, Constants.Shooter.Turret.OFFSET_POS_Y).rotateAround(getPose().getTranslation(), getPose().getRotation());//, new Rotation2d(0);
+      Pose2d turretPosition = getPose().plus(new Transform2d(robotToTurret, new Rotation2d()));
+      double turretToTargetDistance = target.getDistance(turretPosition.getTranslation());
+
+      // Calculate field relative turret velocity
+      double robotAngle = estimatedPose.getRotation().getRadians();
+      double turretVelocityX =
+          getChassisSpeeds().vxMetersPerSecond
+              + getChassisSpeeds().omegaRadiansPerSecond
+                  * (robotToTurret.getY() * Math.cos(robotAngle)
+                      - robotToTurret.getX() * Math.sin(robotAngle));
+      double turretVelocityY =
+          getChassisSpeeds().vyMetersPerSecond
+              + getChassisSpeeds().omegaRadiansPerSecond
+                  * (robotToTurret.getX() * Math.cos(robotAngle)
+                      - robotToTurret.getY() * Math.sin(robotAngle));
+
+      // Account for imparted velocity by robot (turret) to offset
+      double timeOfFlightVal;
+      Pose2d lookaheadPose = turretPosition;
+      double lookaheadTurretToTargetDistance = turretToTargetDistance;
+      for (int i = 0; i < 20; i++) {
+        timeOfFlightVal = timeOfFlight.get(lookaheadTurretToTargetDistance);
+        double offsetX = turretVelocityX * timeOfFlightVal;
+        double offsetY = turretVelocityY * timeOfFlightVal;
+        lookaheadPose =
+            new Pose2d(
+                turretPosition.getTranslation().plus(new Translation2d(offsetX, offsetY)),
+                turretPosition.getRotation());
+        lookaheadTurretToTargetDistance = target.getDistance(lookaheadPose.getTranslation());
+      }
+
+
+      Logger.recordOutput("LaunchCalculator/LookaheadPose", lookaheadPose);
+      Logger.recordOutput("LaunchCalculator/TurretToTargetDistance", lookaheadTurretToTargetDistance);
+
+
+      // Calculate parameters accounted for imparted velocity
+      return lookaheadPose;
+    }
+    
+
    
 
     public double calculateHoodAngle() {
       Pose2d currentPose = getPose(); 
       currentPose = currentPose.plus(new Transform2d(new Translation2d(Constants.Shooter.Turret.OFFSET_POS_X, Constants.Shooter.Turret.OFFSET_POS_Y).rotateBy(new Rotation2d(getPose().getRotation().getRadians())), new Rotation2d(0)));
       double distance = DriverStation.getAlliance().get() == DriverStation.Alliance.Blue ? Math.sqrt(Math.pow((currentPose.getX() - BLUE_HUB_X), 2) + Math.pow((currentPose.getY() - BLUE_HUB_Y), 2)) : Math.sqrt(Math.pow((currentPose.getX() - RED_HUB_X), 2) + Math.pow((currentPose.getY() - RED_HUB_Y), 2));
+      distanceLogged.set(distance);
+      return hoodAngles.get(distance);
+    }
+
+    public double calculateHoodAngle(Pose2d pose) {
+ //     Pose2d currentPose = getPose(); 
+   //   currentPose = currentPose.plus(new Transform2d(new Translation2d(Constants.Shooter.Turret.OFFSET_POS_X, Constants.Shooter.Turret.OFFSET_POS_Y).rotateBy(new Rotation2d(getPose().getRotation().getRadians())), new Rotation2d(0)));
+      double distance = DriverStation.getAlliance().get() == DriverStation.Alliance.Blue ? Math.sqrt(Math.pow((pose.getX() - BLUE_HUB_X), 2) + Math.pow((pose.getY() - BLUE_HUB_Y), 2)) : Math.sqrt(Math.pow((pose.getX() - RED_HUB_X), 2) + Math.pow((pose.getY() - RED_HUB_Y), 2));
       distanceLogged.set(distance);
       return hoodAngles.get(distance);
     }
@@ -497,6 +593,10 @@ public class Drive extends SubsystemBase {
 
   public boolean fuelInVision() {
     return (taSubscriber.get() > 0.5 && txSubscriber.get() != 0 && tySubscriber.get() != 0);
+  }
+
+  public Translation2d getVelocity() {
+    return new Translation2d(getChassisSpeeds().vxMetersPerSecond, getChassisSpeeds().vyMetersPerSecond);
   }
 
   /** Runs the drive in a straight line with the specified drive output. */
@@ -583,6 +683,10 @@ public class Drive extends SubsystemBase {
   @AutoLogOutput(key = "Odometry/Robot")
   public Pose2d getPose() {
     return poseEstimator.getEstimatedPosition();
+  }
+
+  public double getTOF(double distance) {
+    return timeOfFlight.get(distance);
   }
 
   /** Returns the current odometry rotation. */

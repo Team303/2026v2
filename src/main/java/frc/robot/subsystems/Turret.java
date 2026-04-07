@@ -87,7 +87,7 @@ public class Turret extends SubsystemBase {
     CANcoderConfiguration cc_cfg = new CANcoderConfiguration();
     cc_cfg.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 1;
     cc_cfg.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
-    cc_cfg.MagnetSensor.MagnetOffset = 0.554931640625;
+    cc_cfg.MagnetSensor.MagnetOffset = 0.0;
     throughBore.getConfigurator().apply(cc_cfg);
 
     turretMotor = new TalonFX(Constants.Shooter.Turret.TURRET_MOTOR_ID, "topside");
@@ -207,8 +207,9 @@ public class Turret extends SubsystemBase {
     double finalRadiansRotate = radiansRotate + curPose.getRotation().getRadians();
     double finalAngleRotate = Math.toDegrees(finalRadiansRotate);
 
-    Logger.recordOutput("angle of rotation", finalAngleRotate);
-    return (finalAngleRotate + 135);// * (0.46/0.5);
+    Logger.recordOutput("angle of rotation", (finalAngleRotate - 45) / 360.0);
+    System.out.println(curPose.toString());
+    return (finalAngleRotate - 45);// * (0.46/0.5);
   }
 
   private double getBluePassingRightRotate(Pose2d curPose) {
@@ -218,7 +219,7 @@ public class Turret extends SubsystemBase {
 
     double finalRadiansRotate = radiansRotate + curPose.getRotation().getRadians();
     double finalAngleRotate = Math.toDegrees(finalRadiansRotate);
-    return (finalAngleRotate + 135);// * (0.46/0.5);
+    return (finalAngleRotate - 45);// * (0.46/0.5);
   }
 
   private double getRedPassingLeftRotate(Pose2d curPose) {
@@ -258,6 +259,13 @@ public class Turret extends SubsystemBase {
     return getBlueHubRotate(currentPose);
   }
 
+  public double getTurretTurnPos(Pose2d pose) {
+  //  Pose2d currentPose = drive.getPose(); //NEED TO ADD OFFSET FOR TURRET POSITION!!!
+  //  currentPose = currentPose.plus(new Transform2d(new Translation2d(Constants.Shooter.Turret.OFFSET_POS_X, Constants.Shooter.Turret.OFFSET_POS_Y).rotateBy(new Rotation2d(drive.getPose().getRotation().getRadians())), new Rotation2d(0)));
+    if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) return getRedHubRotate(pose);
+    return getBlueHubRotate(pose);
+  }
+
   public double getTurretPassingPos(boolean leftSide) {
     Pose2d currentPose = drive.getPose(); //NEED TO ADD OFFSET FOR TURRET POSITION!!!
     currentPose = currentPose.plus(new Transform2d(new Translation2d(Constants.Shooter.Turret.OFFSET_POS_X, Constants.Shooter.Turret.OFFSET_POS_Y).rotateBy(new Rotation2d(drive.getPose().getRotation().getRadians())), new Rotation2d(0)));
@@ -268,6 +276,7 @@ public class Turret extends SubsystemBase {
   @Override
   public void periodic() {
     //printRAWPositionForOffset();
+    throughBorePosition.set(getThroughPosition());
     motorPosition.set(getMotorPosition());
     //System.out.println("GOAL: " + Constants.Shooter.Turret.TURRET_HOME_POS + "; END: " + getMotorPosition() + "; DIFF" + Math.abs(Constants.Shooter.Turret.TURRET_HOME_POS - getMotorPosition()));
     

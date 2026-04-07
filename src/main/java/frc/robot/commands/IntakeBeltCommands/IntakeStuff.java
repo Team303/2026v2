@@ -9,7 +9,8 @@ public class IntakeStuff extends Command {
     boolean forward; 
     IntakeBelt intakeBelt;
 
-    public IntakeStuff(IntakeBelt intakebelt, boolean forward) {
+    public 
+    IntakeStuff(IntakeBelt intakebelt, boolean forward) {
         addRequirements(intakebelt);
         this.intakeBelt = intakebelt;
         this.forward = forward;
@@ -18,11 +19,11 @@ public class IntakeStuff extends Command {
         
     }
     public void execute(){
-        if (forward){
-            intakeBelt.beltMotor.set(-0.75);
+        if (forward) {
+            intakeBelt.beltMotor.set(-0.50);
         }
         else {
-            intakeBelt.beltMotor.set(0.75);
+            intakeBelt.beltMotor.set(0.85);
         }
         
     }

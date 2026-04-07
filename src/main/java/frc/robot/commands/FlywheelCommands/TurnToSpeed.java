@@ -29,7 +29,7 @@ public class TurnToSpeed extends Command {
   @Override
   public void execute() {
     RobotContainer.shooting = true; 
-    goal_speed = drive.calculateFlyWheelSpeed();
+    goal_speed = drive.calculateFlyWheelSpeed(drive.whoKnows());
     flywheel.flywheelInterpNumber.set(goal_speed);
     // goal_speed = -41.5;
     //goal_speed = FLYWHEEL_INTERP_GOAL.getAsDouble();

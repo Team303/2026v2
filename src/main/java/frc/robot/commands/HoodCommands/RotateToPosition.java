@@ -24,13 +24,13 @@ public class RotateToPosition extends Command {
 
   @Override
   public void initialize() {
-    goal = drive.calculateHoodAngle();
+    goal = drive.calculateHoodAngle(drive.whoKnows());
   }
 
   @Override
   public void execute() {
   //System.out.println("hood goal: " + goal);
-  goal = drive.calculateHoodAngle();
+  goal = drive.calculateHoodAngle(drive.whoKnows());
   hood.hoodFoundPos.set(goal);
 
 
